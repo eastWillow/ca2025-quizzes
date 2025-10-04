@@ -23,7 +23,7 @@ static inline unsigned clz(uint32_t x)
 uint32_t uf8_decode(uf8 fl)
 {
     uint32_t mantissa = fl & 0x0f;
-    uint8_t exponent = fl >> 4;
+    uint8_t exponent = fl >> 4; //unsidned is Logical shift
     uint32_t offset = (0x7FFF >> (15 - exponent)) << 4;
     return (mantissa << exponent) + offset;
 }
