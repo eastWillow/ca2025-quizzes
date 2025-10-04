@@ -11,8 +11,8 @@ typedef struct {
 #define BF16_MANT_MASK 0x007FU
 #define BF16_EXP_BIAS 127
 
-#define BF16_NAN() ((bf16_t) {.bits = 0x7FC0})
-#define BF16_ZERO() ((bf16_t) {.bits = 0x0000})
+#define BF16_NAN() ((bf16_t){.bits = 0x7FC0})
+#define BF16_ZERO() ((bf16_t){.bits = 0x0000})
 
 static inline bool bf16_isnan(bf16_t a)
 {
@@ -36,9 +36,9 @@ static inline bf16_t f32_to_bf16(float val)
     uint32_t f32bits;
     memcpy(&f32bits, &val, sizeof(float));
     if (((f32bits >> 23) & 0xFF) == 0xFF)
-        return (bf16_t) {.bits = (f32bits >> 16) & 0xFFFF};
+        return (bf16_t){.bits = (f32bits >> 16) & 0xFFFF};
     f32bits += ((f32bits >> 16) & 1) + 0x7FFF;
-    return (bf16_t) {.bits = f32bits >> 16};
+    return (bf16_t){.bits = f32bits >> 16};
 }
 
 static inline float bf16_to_f32(bf16_t val)
@@ -102,7 +102,7 @@ static inline bf16_t bf16_add(bf16_t a, bf16_t b)
         if (result_mant & 0x100) {
             result_mant >>= 1;
             if (++result_exp >= 0xFF)
-                return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+                return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
         }
     } else {
         if (mant_a >= mant_b) {
@@ -122,7 +122,7 @@ static inline bf16_t bf16_add(bf16_t a, bf16_t b)
         }
     }
 
-    return (bf16_t) {
+    return (bf16_t){
         .bits = (result_sign << 15) | ((result_exp & 0xFF) << 7) |
                 (result_mant & 0x7F),
     };
@@ -150,17 +150,17 @@ static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
             return a;
         if (!exp_b && !mant_b)
             return BF16_NAN();
-        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
     }
     if (exp_b == 0xFF) {
         if (mant_b)
             return b;
         if (!exp_a && !mant_a)
             return BF16_NAN();
-        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
     }
     if ((!exp_a && !mant_a) || (!exp_b && !mant_b))
-        return (bf16_t) {.bits = result_sign << 15};
+        return (bf16_t){.bits = result_sign << 15};
 
     int16_t exp_adjust = 0;
     if (!exp_a) {
@@ -191,16 +191,16 @@ static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
         result_mant = (result_mant >> 7) & 0x7F;
 
     if (result_exp >= 0xFF)
-        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
     if (result_exp <= 0) {
         if (result_exp < -6)
-            return (bf16_t) {.bits = result_sign << 15};
+            return (bf16_t){.bits = result_sign << 15};
         result_mant >>= (1 - result_exp);
         result_exp = 0;
     }
 
-    return (bf16_t) {.bits = (result_sign << 15) | ((result_exp & 0xFF) << 7) |
-                             (result_mant & 0x7F)};
+    return (bf16_t){.bits = (result_sign << 15) | ((result_exp & 0xFF) << 7) |
+                            (result_mant & 0x7F)};
 }
 
 static inline bf16_t bf16_div(bf16_t a, bf16_t b)
@@ -220,20 +220,20 @@ static inline bf16_t bf16_div(bf16_t a, bf16_t b)
         /* Inf/Inf = NaN */
         if (exp_a == 0xFF && !mant_a)
             return BF16_NAN();
-        return (bf16_t) {.bits = result_sign << 15};
+        return (bf16_t){.bits = result_sign << 15};
     }
     if (!exp_b && !mant_b) {
         if (!exp_a && !mant_a)
             return BF16_NAN();
-        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
     }
     if (exp_a == 0xFF) {
         if (mant_a)
             return a;
-        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
     }
     if (!exp_a && !mant_a)
-        return (bf16_t) {.bits = result_sign << 15};
+        return (bf16_t){.bits = result_sign << 15};
 
     if (exp_a)
         mant_a |= 0x80;
@@ -271,10 +271,10 @@ static inline bf16_t bf16_div(bf16_t a, bf16_t b)
     quotient &= 0x7F;
 
     if (result_exp >= 0xFF)
-        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
     if (result_exp <= 0)
-        return (bf16_t) {.bits = result_sign << 15};
-    return (bf16_t) {
+        return (bf16_t){.bits = result_sign << 15};
+    return (bf16_t){
         .bits = (result_sign << 15) | ((result_exp & 0xFF) << 7) |
                 (quotient & 0x7F),
     };
@@ -311,43 +311,43 @@ static inline bf16_t bf16_sqrt(bf16_t a)
     /* For sqrt: new_exp = (old_exp - bias) / 2 + bias */
     int32_t e = exp - BF16_EXP_BIAS;
     int32_t new_exp;
-    
+
     /* Get full mantissa with implicit 1 */
-    uint32_t m = 0x80 | mant;  /* Range [128, 256) representing [1.0, 2.0) */
-    
+    uint32_t m = 0x80 | mant; /* Range [128, 256) representing [1.0, 2.0) */
+
     /* Adjust for odd exponents: sqrt(2^odd * m) = 2^((odd-1)/2) * sqrt(2*m) */
     if (e & 1) {
-        m <<= 1;  /* Double mantissa for odd exponent */
+        m <<= 1; /* Double mantissa for odd exponent */
         new_exp = ((e - 1) >> 1) + BF16_EXP_BIAS;
     } else {
         new_exp = (e >> 1) + BF16_EXP_BIAS;
     }
-    
+
     /* Now m is in range [128, 256) or [256, 512) if exponent was odd */
     /* Binary search for integer square root */
     /* We want result where result^2 = m * 128 (since 128 represents 1.0) */
-    
-    uint32_t low = 90;          /* Min sqrt (roughly sqrt(128)) */
-    uint32_t high = 256;        /* Max sqrt (roughly sqrt(512)) */
-    uint32_t result = 128;      /* Default */
-    
+
+    uint32_t low = 90;     /* Min sqrt (roughly sqrt(128)) */
+    uint32_t high = 256;   /* Max sqrt (roughly sqrt(512)) */
+    uint32_t result = 128; /* Default */
+
     /* Binary search for square root of m */
     while (low <= high) {
         uint32_t mid = (low + high) >> 1;
-        uint32_t sq = (mid * mid) / 128;  /* Square and scale */
-        
+        uint32_t sq = (mid * mid) / 128; /* Square and scale */
+
         if (sq <= m) {
-            result = mid;  /* This could be our answer */
+            result = mid; /* This could be our answer */
             low = mid + 1;
         } else {
             high = mid - 1;
         }
     }
-    
+
     /* result now contains sqrt(m) * sqrt(128) / sqrt(128) = sqrt(m) */
     /* But we need to adjust the scale */
     /* Since m is scaled where 128=1.0, result should also be scaled same way */
-    
+
     /* Normalize to ensure result is in [128, 256) */
     if (result >= 256) {
         result >>= 1;
@@ -358,17 +358,17 @@ static inline bf16_t bf16_sqrt(bf16_t a)
             new_exp--;
         }
     }
-    
+
     /* Extract 7-bit mantissa (remove implicit 1) */
     uint16_t new_mant = result & 0x7F;
-    
+
     /* Check for overflow/underflow */
     if (new_exp >= 0xFF)
-        return (bf16_t) {.bits = 0x7F80};  /* +Inf */
+        return (bf16_t){.bits = 0x7F80}; /* +Inf */
     if (new_exp <= 0)
         return BF16_ZERO();
-    
-    return (bf16_t) {.bits = ((new_exp & 0xFF) << 7) | new_mant};
+
+    return (bf16_t){.bits = ((new_exp & 0xFF) << 7) | new_mant};
 }
 
 static inline bool bf16_eq(bf16_t a, bf16_t b)
@@ -439,11 +439,11 @@ static int test_special_values(void)
 {
     printf("Testing special values...\n");
 
-    bf16_t pos_inf = {.bits = 0x7F80};  /* +Infinity */
+    bf16_t pos_inf = {.bits = 0x7F80}; /* +Infinity */
     TEST_ASSERT(bf16_isinf(pos_inf), "Positive infinity not detected");
     TEST_ASSERT(!bf16_isnan(pos_inf), "Infinity detected as NaN");
 
-    bf16_t neg_inf = {.bits = 0xFF80};  /* -Infinity */
+    bf16_t neg_inf = {.bits = 0xFF80}; /* -Infinity */
     TEST_ASSERT(bf16_isinf(neg_inf), "Negative infinity not detected");
 
     bf16_t nan_val = BF16_NAN();
@@ -541,8 +541,9 @@ static int test_edge_cases(void)
     float tiny = 1e-45f;
     bf16_t bf_tiny = f32_to_bf16(tiny);
     float tiny_val = bf16_to_f32(bf_tiny);
-    TEST_ASSERT(bf16_iszero(bf_tiny) || (tiny_val < 0 ? -tiny_val : tiny_val) < 1e-37f,
-                "Tiny value handling");
+    TEST_ASSERT(
+        bf16_iszero(bf_tiny) || (tiny_val < 0 ? -tiny_val : tiny_val) < 1e-37f,
+        "Tiny value handling");
 
     float huge = 1e38f;
     bf16_t bf_huge = f32_to_bf16(huge);
@@ -552,7 +553,8 @@ static int test_edge_cases(void)
     bf16_t small = f32_to_bf16(1e-38f);
     bf16_t smaller = bf16_div(small, f32_to_bf16(1e10f));
     float smaller_val = bf16_to_f32(smaller);
-    TEST_ASSERT(bf16_iszero(smaller) || (smaller_val < 0 ? -smaller_val : smaller_val) < 1e-45f,
+    TEST_ASSERT(bf16_iszero(smaller) ||
+                    (smaller_val < 0 ? -smaller_val : smaller_val) < 1e-45f,
                 "Underflow should produce zero or denormal");
 
     printf("  Edge cases: PASS\n");
@@ -573,7 +575,8 @@ static int test_rounding(void)
     bf16_t bf = f32_to_bf16(val);
     float back = bf16_to_f32(bf);
     float diff2 = back - val;
-    TEST_ASSERT((diff2 < 0 ? -diff2 : diff2) < 0.001f, "Rounding error should be small");
+    TEST_ASSERT((diff2 < 0 ? -diff2 : diff2) < 0.001f,
+                "Rounding error should be small");
 
     printf("  Rounding: PASS\n");
     return 0;
