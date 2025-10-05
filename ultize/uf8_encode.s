@@ -44,6 +44,10 @@ end:
     ecall
 
 uf8_encode:
+    # a0 = uf8_encode (a0)
+    # --- if (value < 16) return value; ---
+    li      t0, 16
+    bgeu    a0, t0, call_bitwise
     ret
 
 clz_bitwise:
