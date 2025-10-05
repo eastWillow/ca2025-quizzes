@@ -46,37 +46,11 @@ main_loop:
     lw      t4, 20(sp)
     addi    sp, sp, 24
 
-    # la      a0, input_str
-    # li      a7, 4
-    # ecall
-    # mv      a0, t2
-    # li      a7, 34
-    # ecall
-    # la      a0, decode_str
-    # li      a7, 4
-    # ecall
-    # mv      a0, t4
-    # li      a7, 34
-    # ecall
-    # la      a0, encdoe_str
-    # li      a7, 4
-    # ecall
-    # mv      a0, t5
-    # li      a7, 34
-    # ecall
-
     beq     t2, t5, decode_value_equ_encode_value
 decode_value_noe_equ_encode_value:
-    # la      a0, not_equ_str
-    # li      a7, 4
-    # ecall
-
     mv      t1, x0
-decode_value_equ_encode_value:
-    # la      a0, change_line_str
-    # li      a7, 4
-    # ecall
 
+decode_value_equ_encode_value:
     addi    t2, t2, 1   # i = i + 1
     j       main_loop
 
