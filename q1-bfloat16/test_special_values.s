@@ -8,8 +8,9 @@
 .equ BF16_ZERO      , 0x00000000
 .equ BF16_BITS      , 0x00007FFF
 .data
-test_pos_inf_is_inf_str:    .string "test pos is inf: "
-test_pos_inf_not_nan_str:   .string "test pos not nan: "
+test_pos_inf_is_inf_str:    .string "pos inf is inf: "
+test_pos_inf_not_nan_str:   .string "pos inf not nan: "
+test_neg_inf_is_inf_str:    .string "neg inf is inf: "
 test_pass_str:              .string "pass\n"
 test_fail_str:              .string "fail\n"
 
@@ -52,6 +53,25 @@ test_pos_inf_not_nan_pass:
     ecall
 test_pos_inf_not_nan_done:
 
+test_neg_inf_is_inf_start:
+    la      a0, test_neg_inf_is_inf_str
+    li      a7, 4
+    ecall
+    li      a0, BF16_NEG_INF
+    jal     bf16_isinf
+    bnez    a0, test_neg_inf_is_inf_pass
+test_neg_inf_is_inf_fail:
+    la      a0, test_fail_str
+    li      a7, 4
+    ecall
+    j       test_neg_inf_is_inf_done  # jump to test_inf_done
+test_neg_inf_is_inf_pass:
+    la      a0, test_pass_str
+    li      a7, 4
+    ecall
+test_neg_inf_is_inf_done:
+
+main_done:
     li      a7, 10
     ecall
 
