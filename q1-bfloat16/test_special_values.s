@@ -11,6 +11,7 @@
 test_pos_inf_is_inf_str:    .string "pos inf is inf: "
 test_pos_inf_not_nan_str:   .string "pos inf not nan: "
 test_neg_inf_is_inf_str:    .string "neg inf is inf: "
+test_nan_is_nan_str:        .string "nan is nan: "
 test_pass_str:              .string "pass\n"
 test_fail_str:              .string "fail\n"
 
@@ -70,6 +71,25 @@ test_neg_inf_is_inf_pass:
     li      a7, 4
     ecall
 test_neg_inf_is_inf_done:
+
+test_nan_is_nan_start:
+    la      a0, test_nan_is_nan_str
+    li      a7, 4
+    ecall
+    li      a0, BF16_NAN
+    jal     bf16_isnan
+    bnez    a0, test_nan_is_nan_pass
+test_nan_is_nan_fail:
+    la      a0, test_fail_str
+    li      a7, 4
+    ecall
+    j       test_nan_is_nan_done  # jump to test_inf_done
+test_nan_is_nan_pass:
+    la      a0, test_pass_str
+    li      a7, 4
+    ecall
+test_nan_is_nan_done:
+
 
 main_done:
     li      a7, 10
