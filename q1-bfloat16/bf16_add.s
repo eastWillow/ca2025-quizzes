@@ -1,36 +1,75 @@
 .data
-test_data:
-    .word 0x0000
-    .word 0x8000
-    .word 0x7F80
-    .word 0xFF80
-    .word 0x7FC0
-    .word 0x3F80
-    .word 0x3F00
-    .word 0x4000
-    .word 0x3F82
-    .word 0x3F80
-    .word 0x3F81
-    .word 0xBF82
-    .word 0xBF81
+test_a_data:
+    .word 0x00000000    # +0.0
+    .word 0x00008000    # -0.0
+    .word 0x00008000    # -0.0
+    .word 0x00000000    # +0.0
+    .word 0x00007F80    # +inf
+    .word 0x0000FF80    # -inf
+    .word 0x00007FC0    # NaN
+    .word 0x00003F80    # 1.0
+    .word 0x0000BF80    # -1.0
+    .word 0x00000000    # +0.0
+    .word 0x00000000    # +0.0
+    .word 0x0000BF80    # -1.0
+    .word 0x00003F81    # +1.0078125
+    .word 0x0000BF82    # -1.015625
+    .word 0x0000BF81    # -1.0078125
+test_b_data:
+    .word 0x00000000    # +0.0
+    .word 0x00008000    # -0.0
+    .word 0x00000000    # +0.0
+    .word 0x00008000    # -0.0
+    .word 0x00007F80    # +inf
+    .word 0x0000FF80    # -inf
+    .word 0x00007FC0    # NaN
+    .word 0x00000000    # +0.0
+    .word 0x00000000    # +0.0
+    .word 0x00003F80    # 1.0
+    .word 0x0000BF80    # -1.0
+    .word 0x00003F80    # 1.0
+    .word 0x00003F81    # +1.0078125
+    .word 0x0000BF82    # -1.015625
+    .word 0x0000BF81    # -1.0078125
 test_data_end:
     .word 0xFFFFFFFF
-expect_data:
+
+expect_add_data:
     .word 0x00000000    # +0.0
-    .word 0x80000000    # -0.0
-    .word 0x7F800000    # +inf
-    .word 0xFF800000    # -inf
-    .word 0x7FC00000    # NaN (quiet)
-    .word 0x3F800000    # 1.0
-    .word 0x3F000000    # 0.5
-    .word 0x40000000    # 2.0
-    .word 0x3F820000    #
-    .word 0x3F800000    #
-    .word 0x3F810000    #
-    .word 0xBF820000    #
-    .word 0xBF810000    #
+    .word 0x00008000    # -0.0
+    .word 0x00000000    # +0.0
+    .word 0x00000000    # +0.0
+    .word 0x00007F80    # +inf
+    .word 0x0000FF80    # -inf
+    .word 0x00007FC0    # NaN
+    .word 0x00003F80    # 1.0
+    .word 0x0000BF80    # -1.0
+    .word 0x00003F80    # 1.0
+    .word 0x0000BF80    # -1.0
+    .word 0x00000000    # +0.0
+    .word 0x00004001    # +2.015625
+    .word 0x0000C002    # -2.03125
+    .word 0x0000C001    # -2.015625
+
+expect_sub_data:
+    .word 0x00000000    # +0.0
+    .word 0x00000000    # +0.0
+    .word 0x00008000    # -0.0
+    .word 0x00000000    # +0.0
+    .word 0x00007FC0    # NaN
+    .word 0x00007FC0    # NaN
+    .word 0x00007FC0    # NaN
+    .word 0x00003F80    # 1.0
+    .word 0x0000BF80    # -1.0
+    .word 0x0000BF80    # -1.0
+    .word 0x00003F80    # 1.0
+    .word 0x0000C000    # -2.0
+    .word 0x00000000    # +0.0
+    .word 0x00000000    # +0.0
+    .word 0x00000000    # +0.0
 expect_data_end:
     .word 0xFFFFFFFF
+
 msg_pass:  .string "OK\n"
 msg_fail:  .string "FAIL\n"
 
@@ -70,3 +109,18 @@ done:
     ecall
 
 bf16_add:
+# | variable       | Reg   |
+# | -------------- | ----- |
+# | a.bits/result  | a0    |
+# | b.bits         | a1    |
+# | sign_a         | t0    |
+# | sign_b         | t1    |
+# | exp_a          | t2    |
+# | exp_b          | t3    |
+# | mant_a         | t4    |
+# | mant_b         | t5    |
+# | exp_diff       | t6    |
+# | result_sign    | s0    |
+# | result_exp     | s1    |
+# | result_mant    | s2    |
+# | temp           | t7,t8 |
