@@ -11,8 +11,8 @@ typedef struct {
 #define BF16_MANT_MASK 0x007FU
 #define BF16_EXP_BIAS 127
 
-#define BF16_NAN() ((bf16_t){.bits = 0x7FC0})
-#define BF16_ZERO() ((bf16_t){.bits = 0x0000})
+#define BF16_NAN() ((bf16_t) {.bits = 0x7FC0})
+#define BF16_ZERO() ((bf16_t) {.bits = 0x0000})
 
 static inline bool bf16_isnan(bf16_t a)
 {
@@ -36,9 +36,9 @@ static inline bf16_t f32_to_bf16(float val)
     uint32_t f32bits;
     memcpy(&f32bits, &val, sizeof(float));
     if (((f32bits >> 23) & 0xFF) == 0xFF)
-        return (bf16_t){.bits = (f32bits >> 16) & 0xFFFF};
+        return (bf16_t) {.bits = (f32bits >> 16) & 0xFFFF};
     f32bits += ((f32bits >> 16) & 1) + 0x7FFF;
-    return (bf16_t){.bits = f32bits >> 16};
+    return (bf16_t) {.bits = f32bits >> 16};
 }
 
 static inline float bf16_to_f32(bf16_t val)
@@ -67,8 +67,15 @@ static inline bf16_t bf16_add(bf16_t a, bf16_t b)
     }
     if (exp_b == 0xFF)
         return b;
-    if (!exp_a && !mant_a)
-        return b;
+    if (!exp_a && !mant_a) {
+        if (!exp_b && !mant_b) {
+            if (sign_a != sign_b)
+                return BF16_ZERO();
+            else
+                return a;
+        } else
+            return b;
+    }
     if (!exp_b && !mant_b)
         return a;
     if (exp_a)
@@ -102,7 +109,7 @@ static inline bf16_t bf16_add(bf16_t a, bf16_t b)
         if (result_mant & 0x100) {
             result_mant >>= 1;
             if (++result_exp >= 0xFF)
-                return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
+                return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
         }
     } else {
         if (mant_a >= mant_b) {
@@ -122,7 +129,7 @@ static inline bf16_t bf16_add(bf16_t a, bf16_t b)
         }
     }
 
-    return (bf16_t){
+    return (bf16_t) {
         .bits = (result_sign << 15) | ((result_exp & 0xFF) << 7) |
                 (result_mant & 0x7F),
     };
@@ -150,17 +157,17 @@ static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
             return a;
         if (!exp_b && !mant_b)
             return BF16_NAN();
-        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
     }
     if (exp_b == 0xFF) {
         if (mant_b)
             return b;
         if (!exp_a && !mant_a)
             return BF16_NAN();
-        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
     }
     if ((!exp_a && !mant_a) || (!exp_b && !mant_b))
-        return (bf16_t){.bits = result_sign << 15};
+        return (bf16_t) {.bits = result_sign << 15};
 
     int16_t exp_adjust = 0;
     if (!exp_a) {
@@ -191,16 +198,16 @@ static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
         result_mant = (result_mant >> 7) & 0x7F;
 
     if (result_exp >= 0xFF)
-        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
     if (result_exp <= 0) {
         if (result_exp < -6)
-            return (bf16_t){.bits = result_sign << 15};
+            return (bf16_t) {.bits = result_sign << 15};
         result_mant >>= (1 - result_exp);
         result_exp = 0;
     }
 
-    return (bf16_t){.bits = (result_sign << 15) | ((result_exp & 0xFF) << 7) |
-                            (result_mant & 0x7F)};
+    return (bf16_t) {.bits = (result_sign << 15) | ((result_exp & 0xFF) << 7) |
+                             (result_mant & 0x7F)};
 }
 
 static inline bf16_t bf16_div(bf16_t a, bf16_t b)
@@ -220,20 +227,20 @@ static inline bf16_t bf16_div(bf16_t a, bf16_t b)
         /* Inf/Inf = NaN */
         if (exp_a == 0xFF && !mant_a)
             return BF16_NAN();
-        return (bf16_t){.bits = result_sign << 15};
+        return (bf16_t) {.bits = result_sign << 15};
     }
     if (!exp_b && !mant_b) {
         if (!exp_a && !mant_a)
             return BF16_NAN();
-        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
     }
     if (exp_a == 0xFF) {
         if (mant_a)
             return a;
-        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
     }
     if (!exp_a && !mant_a)
-        return (bf16_t){.bits = result_sign << 15};
+        return (bf16_t) {.bits = result_sign << 15};
 
     if (exp_a)
         mant_a |= 0x80;
@@ -271,10 +278,10 @@ static inline bf16_t bf16_div(bf16_t a, bf16_t b)
     quotient &= 0x7F;
 
     if (result_exp >= 0xFF)
-        return (bf16_t){.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
     if (result_exp <= 0)
-        return (bf16_t){.bits = result_sign << 15};
-    return (bf16_t){
+        return (bf16_t) {.bits = result_sign << 15};
+    return (bf16_t) {
         .bits = (result_sign << 15) | ((result_exp & 0xFF) << 7) |
                 (quotient & 0x7F),
     };
@@ -364,11 +371,11 @@ static inline bf16_t bf16_sqrt(bf16_t a)
 
     /* Check for overflow/underflow */
     if (new_exp >= 0xFF)
-        return (bf16_t){.bits = 0x7F80}; /* +Inf */
+        return (bf16_t) {.bits = 0x7F80}; /* +Inf */
     if (new_exp <= 0)
         return BF16_ZERO();
 
-    return (bf16_t){.bits = ((new_exp & 0xFF) << 7) | new_mant};
+    return (bf16_t) {.bits = ((new_exp & 0xFF) << 7) | new_mant};
 }
 
 static inline bool bf16_eq(bf16_t a, bf16_t b)
