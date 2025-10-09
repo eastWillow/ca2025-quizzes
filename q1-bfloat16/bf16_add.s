@@ -1,3 +1,13 @@
+.equ BF16_SIGN_MASK , 0x00008000
+.equ BF16_EXP_MASK  , 0x00007F80    #[14:0]
+.equ BF16_MANT_MASK , 0x0000007F    #[6:0]
+.equ BF16_EXP_BIAS  , 127
+.equ BF16_POS_INF   , 0x00007F80
+.equ BF16_NEG_INF   , 0x0000FF80
+.equ BF16_NAN       , 0x00007FC0
+.equ BF16_ZERO      , 0x00000000
+.equ BF16_BITS      , 0x00007FFF
+
 .data
 test_a_data:
     .word 0x00000000    # +0.0
@@ -108,7 +118,17 @@ done:
     li      a7, 10
     ecall
 
-bf16_add:
+# bf16_sub
+# | variable       | Reg   |
+# | -------------- | ----- |
+# | a.bits/result  | a0    |
+# | b.bits/xor_b   | a1    |
+bf16_sub:
+    li      t0, BF16_SIGN_MASK
+    xor     a1, a1, t0          # b.bits ^= BF16_SIGN_MASK
+    jal     bf16_add            # a0 = bf16_add(a0, a1)
+    ret
+# bf16_add
 # | variable       | Reg   |
 # | -------------- | ----- |
 # | a.bits/result  | a0    |
@@ -124,3 +144,4 @@ bf16_add:
 # | result_exp     | s1    |
 # | result_mant    | s2    |
 # | temp           | t7,t8 |
+bf16_add:
