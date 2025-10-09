@@ -133,15 +133,19 @@ bf16_sub:
 # | -------------- | ----- |
 # | a.bits/result  | a0    |
 # | b.bits         | a1    |
-# | sign_a         | t0    |
-# | sign_b         | t1    |
-# | exp_a          | t2    |
-# | exp_b          | t3    |
-# | mant_a         | t4    |
-# | mant_b         | t5    |
-# | exp_diff       | t6    |
-# | result_sign    | s0    |
-# | result_exp     | s1    |
-# | result_mant    | s2    |
-# | temp           | t7,t8 |
+# | sign_a         | s0    |
+# | sign_b         | s1    |
+# | exp_a          | s2    |
+# | exp_b          | s3    |
+# | mant_a         | s4    |
+# | mant_b         | s5    |
+# | exp_diff       | s6    |
+# | const.imm 0xFF | s7    |
+# | const.imm 8    | s8    |
+# | const.imm -8   | s9    |
+# | const.imm 0x100| s10   |
+# | result_sign    | t0    |
+# | result_exp     | t1    |
+# | result_mant    | t2    |
+
 bf16_add:
