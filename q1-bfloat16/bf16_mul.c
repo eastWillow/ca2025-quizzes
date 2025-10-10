@@ -18,6 +18,7 @@ typedef struct {
 
 #define BF16_EXP_MASK 0x7F80U
 #define BF16_EXP_BIAS 127
+#define BF16_POS_INF 0x7F80U
 
 #define BF16_NAN() ((bf16_t) {.bits = 0x7FC0})
 
@@ -37,14 +38,14 @@ static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
             return a;
         if (!exp_b && !mant_b)
             return BF16_NAN();
-        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t) {.bits = (result_sign << 15) | BF16_POS_INF};
     }
     if (exp_b == 0xFF) {
         if (mant_b)
             return b;
         if (!exp_a && !mant_a)
             return BF16_NAN();
-        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t) {.bits = (result_sign << 15) | BF16_POS_INF};
     }
     if ((!exp_a && !mant_a) || (!exp_b && !mant_b))
         return (bf16_t) {.bits = result_sign << 15};
