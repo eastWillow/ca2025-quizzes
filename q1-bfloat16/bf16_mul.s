@@ -187,11 +187,13 @@ done:
 # | const.imm 0x80          | s8    |
 # | const.imm 0x8000 [15:0] | s9    |
 # | exp_adjust              | s10   |
-# | temp                    | s11   |
+# | exp_adj_flag/i          | s11   |
 # | result_sign             | t0    |
 # | result_exp              | t1    |
 # | result_mant             | t2    |
-
+# | const.imm 32            | t3    |
+# | mul_loop:mask           | t4    |
+# | mul_loop:(mant_a << i)  | t5    |
 bf16_mul:
     # load the const imm to register
     # sign_a = (a.bits >> 15) & 1
@@ -255,6 +257,7 @@ check_b_zero:
     slli    a0, t0, 15 # result_sign << 15
     ret
 
+    addi    s11, x0, x0 # exp_adjust = 0;
 exp_a_adjust:
     beqz    s2, exp_a_adjust_loop
     or      s4, s4, s8 # mant_a |= 0x80;
@@ -282,3 +285,17 @@ exp_b_adjust_loop_done:
     addi    s3, x0, 1
 
 exp_adjust_done:
+    addi    t2 , x0, x0 # result_mant = 0;
+    addi    s11, x0, x0 # i = 0;
+    addi    t3, x0, 32
+mul_loop:
+    bge     s11, t3, mul_loop_done # i >= 32, j mul_loop_done
+    srl     t4,  s5, s11  # mask = mant_b >> i
+    andi    t4,  t4, 1    # mask = mask & 1
+    sub     t4,  0 , t4   # mask = 0 - mask
+    sll     t5,  s4, s11  # t5 = (mant_a << i)
+    and     t5,  t5, t4   # t5 = t5 & mask
+    add     t2,  t2, t5   # result_mant = result_mant + t5
+    addi    s11, s11, 1   # i++
+    j       mul_loop
+mul_loop_done:
