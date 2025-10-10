@@ -106,13 +106,13 @@ loop:
     la      a0, msg_b
     li      a7, 4
     ecall
-    lw      a0, 0(t2)           # 
+    lw      a0, 0(t2)           #
     li      a7, 34
     ecall
     la      a0, msg_expect_add
     li      a7, 4
     ecall
-    lw      a0, 0(t3)           # 
+    lw      a0, 0(t3)           #
     li      a7, 34
     ecall
     la      a0, msg_actual_add
@@ -194,6 +194,12 @@ bf16_sub:
 # | result_mant    | t2    |
 
 bf16_add:
+    # load the const imm to register
+    addi    s7, x0, 0xFF
+    addi    s8, x0, 8
+    addi    s9, x0, -8 # RV32I behavior is sign extend
+    addi    s10, x0, 0x100
+
     # sign_a = (a.bits >> 15) & 1
     srli    s0, a0, 15
     andi    s0, s0, 1
@@ -215,8 +221,6 @@ bf16_add:
 
     # mant_b = b.bits & 0x7F
     andi    s5, a1, 0x7F
-
-    li      s7, 0xFF
 check_a_inf:
     #// if (exp_a == 0xFF)
     bne     s2, s7, check_b_inf
@@ -272,4 +276,23 @@ check_exp_b:
 
 skip_exp_b:
     sub     s6, s2, s3
+
+check_exp_diff_lt_neg_8:
+    bge     s6, s9, check_exp_diff_lt_pos_8 # if t0 >= t1 then target
+    j       return_b
+
+check_exp_diff_lt_pos_8:
+    ble     s6, s8, check_exp_diff_lt_zero
+    ret     # return a
+
+check_exp_diff_lt_zero:
+    blt     s6, x0, exp_diff_lt_zero
+    mv      t1, s2  #result_exp = exp_a;
+    ble     s6, x0, check_sign_a_equ_sign_b
+    srl     s5, s5, s6  #
+exp_diff_lt_zero:
+    mv      t1, s3  #result_exp = exp_b;
+    sll     s4, s4, s6
+
+check_sign_a_equ_sign_b:
     ret
