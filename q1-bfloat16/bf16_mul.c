@@ -87,7 +87,7 @@ static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
         result_mant = (result_mant >> 7) & 0x7F;
 
     if (result_exp >= 0xFF)
-        return (bf16_t) {.bits = (result_sign << 15) | 0x7F80};
+        return (bf16_t) {.bits = (result_sign << 15) | BF16_POS_INF};
     if (result_exp <= 0) {
         if (result_exp < -6)
             return (bf16_t) {.bits = result_sign << 15};

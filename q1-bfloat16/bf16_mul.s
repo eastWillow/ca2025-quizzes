@@ -187,7 +187,7 @@ done:
 # | const.imm 0x80          | s8    |
 # | const.imm 0x8000 [15:0] | s9    |
 # | exp_adjust              | s10   |
-# | exp_adj_flag/i          | s11   |
+# | exp_adj_flag/i/of_f/-6  | s11   |
 # | result_sign             | t0    |
 # | result_exp              | t1    |
 # | result_mant             | t2    |
@@ -257,8 +257,8 @@ check_b_zero:
     slli    a0, t0, 15 # result_sign << 15
     ret
 
-    addi    s11, x0, x0 # exp_adjust = 0;
 exp_a_adjust:
+    add     s10, x0, x0 # exp_adjust = 0;
     beqz    s2, exp_a_adjust_loop
     or      s4, s4, s8 # mant_a |= 0x80;
     j       exp_b_adjust
@@ -285,17 +285,56 @@ exp_b_adjust_loop_done:
     addi    s3, x0, 1
 
 exp_adjust_done:
-    addi    t2 , x0, x0 # result_mant = 0;
-    addi    s11, x0, x0 # i = 0;
+    add     t2 , x0, x0 # result_mant = 0;
+    add     s11, x0, x0 # i = 0;
     addi    t3, x0, 32
 mul_loop:
     bge     s11, t3, mul_loop_done # i >= 32, j mul_loop_done
     srl     t4,  s5, s11  # mask = mant_b >> i
     andi    t4,  t4, 1    # mask = mask & 1
-    sub     t4,  0 , t4   # mask = 0 - mask
+    sub     t4,  x0 , t4   # mask = 0 - mask
     sll     t5,  s4, s11  # t5 = (mant_a << i)
     and     t5,  t5, t4   # t5 = t5 & mask
     add     t2,  t2, t5   # result_mant = result_mant + t5
     addi    s11, s11, 1   # i++
     j       mul_loop
 mul_loop_done:
+    add     t1, s2, s3    # result_exp = exp_a + exp_b
+    addi    t1, t1, -127  # result_exp = result_exp - 127 (Sign will Extend)
+    add     t1, t1, s10   # result_exp = result_exp + exp_adjust
+
+check_mant_overflow:
+    and     s11, t2, s9   # s11 = result_mant & 0x8000
+    beqz    s11, mant_adjust
+    srli    t2, t2, 8     # result_mant = (result_mant >> 8)
+    andi    t2, t2, 0x7F  # result_mant =  result_mant & 0x7F
+    addi    t1, t1, 1     # result_exp++
+    j       check_exp_overflow
+mant_adjust:
+    srli    t2, t2, 7     # result_mant = (result_mant >> 7)
+    andi    t2, t2, 0x7F  # result_mant =  result_mant & 0x7F
+
+check_exp_overflow:
+    blt     t1, s7, exp_adjust
+    slli    a0, t0, 15    # a0 = result_sign << 15
+    or      a0, a0, s6    # a0 |= BF16_POS_INF
+    ret     #return
+exp_adjust:
+    bgt     t1, x0, result_calculate
+    addi    s11, x0, -6  # s11 = -6
+    bge     t1, s11, mant_exp_adjust # result_exp >= -6 , jump
+    slli    a0, t0, 15   # a0 = result_sign << 15
+    ret     # return
+mant_exp_adjust:
+    addi    s11, x0 , 1  # s11 = 1
+    sub     s11, s11, t1 # s11 = s11 - result_exp
+    srl     t2,  t2, s11 # result_mant >>= s11
+    add     t1,  x0, x0  # result_exp = 0
+result_calculate:
+    slli    t0,  t0, 15  # result_sign = result_sign << 15
+    andi    t1,  t1, 0xFF # result_exp &= 0xFF
+    slli    t1,  t1, 7    # result_exp <<= 7
+    andi    t2,  t2, 0x7F # result_mant &= 0x7F
+    or      a0,  t0, t1   # a0 = result_sign | result_exp
+    or      a0,  a0, t2   # a0 |= result_mant
+    ret
