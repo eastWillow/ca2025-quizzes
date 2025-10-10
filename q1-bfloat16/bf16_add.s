@@ -321,6 +321,17 @@ check_result_mant_zero:
     mv      a0, x0     # return BF16_ZERO
     ret
 result_mant_ne_zero:
-
+    andi    s11, t2, 0x80
+    bnez    s11, calculate_result
+    slli    t2, t2, 1 # result_mant <<= 1;
+    addi    t1, t1, -1 # --result_exp
+    blez    t1, return_BF16_ZERO
+    j       result_mant_ne_zero
 calculate_result:
+    slli    t0, t0, 15      # t0 = (t0 << 15)
+    andi    t1, t1, 0xFF    # t1 = (t1 & 0xFF)
+    slli    t1, t1, 7       # t1 = (t1 << 7)
+    andi    t2, t2, 0x7F    # t2 = t2 & 0x7F
+    or      a0, t0, t1      # a0 = t0 | t1
+    or      a0, a0, t2      # a0 = a0 | t2
     ret
