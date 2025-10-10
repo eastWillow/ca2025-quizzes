@@ -51,22 +51,24 @@ static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
         return (bf16_t) {.bits = result_sign << 15};
 
     int16_t exp_adjust = 0;
-    if (!exp_a) {
+    if (exp_a)
+        mant_a |= 0x80;
+    else {
         while (!(mant_a & 0x80)) {
             mant_a <<= 1;
             exp_adjust--;
         }
         exp_a = 1;
-    } else
-        mant_a |= 0x80;
-    if (!exp_b) {
+    }
+    if (exp_b)
+        mant_b |= 0x80;
+    else {
         while (!(mant_b & 0x80)) {
             mant_b <<= 1;
             exp_adjust--;
         }
         exp_b = 1;
-    } else
-        mant_b |= 0x80;
+    }
 
     uint32_t result_mant = (uint32_t) mant_a * mant_b;
 
