@@ -22,15 +22,6 @@ typedef struct {
 
 #define BF16_NAN() ((bf16_t) {.bits = 0x7FC0})
 
-static inline uint32_t mul(uint32_t a, uint32_t b)
-{
-    uint32_t result_mant = 0;
-    for (int i = 0; i < 32; i++) {
-        if (b & (1 << i))
-            result_mant += a << i;
-    }
-    return result_mant;
-}
 static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
 {
     uint16_t sign_a = (a.bits >> 15) & 1;
@@ -79,7 +70,11 @@ static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
         exp_b = 1;
     }
 
-    uint32_t result_mant = mul(mant_a, mant_b);
+    uint32_t result_mant = 0;
+    for (int i = 0; i < 32; i++) {
+        if (mant_b & (1 << i))
+            result_mant += mant_a << i;
+    }
 
     int32_t result_exp = (int32_t) exp_a + exp_b - BF16_EXP_BIAS + exp_adjust;
 
