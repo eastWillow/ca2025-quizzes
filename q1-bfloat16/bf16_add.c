@@ -72,18 +72,19 @@ static inline bf16_t bf16_add(bf16_t a, bf16_t b)
     int16_t result_exp;
     uint32_t result_mant;
 
-    if (exp_diff > 0) {
+    if (exp_diff < -8)
+        return b;
+    if (exp_diff > 8)
+        return a;
+
+    if (exp_diff >= 0) {
         result_exp = exp_a;
-        if (exp_diff > 8)
-            return a;
-        mant_b >>= exp_diff;
+        if (exp_diff > 0) {
+            mant_b >>= exp_diff;
+        }
     } else if (exp_diff < 0) {
         result_exp = exp_b;
-        if (exp_diff < -8)
-            return b;
-        mant_a >>= -exp_diff;
-    } else {
-        result_exp = exp_a;
+        mant_a <<= exp_diff;
     }
 
     if (sign_a == sign_b) {
