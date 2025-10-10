@@ -83,6 +83,8 @@ msg_a:  .string "a: "
 msg_b:  .string " b: "
 msg_expect_add:  .string " expect add: "
 msg_actual_add:  .string " actual add: "
+msg_expect_sub:  .string " expect sub: "
+msg_actual_sub:  .string " actual sub: "
 msg_next:  .string " \n"
 msg_all_pass:  .string "ALL PASS\n"
 msg_fail:  .string "FAIL\n"
@@ -115,13 +117,16 @@ loop:
     lw      a0, 0(t3)           #
     li      a7, 34
     ecall
-    la      a0, msg_actual_add
+    la      a0, msg_expect_sub
     li      a7, 4
+    ecall
+    lw      a0, 0(t4)           #
+    li      a7, 34
     ecall
 #display message end
     lw      a0, 0(t0)           # load bf16 a test value
     lw      a1, 0(t2)           # load bf16 b test value
-    addi    sp, sp, -16         # align 16 bytes
+    addi    sp, sp, -32         # align 16 bytes
     sw      t4, 16(sp)
     sw      t3, 12(sp)
     sw      t2, 8(sp)
@@ -133,18 +138,47 @@ loop:
     lw      t2, 8(sp)
     lw      t3, 12(sp)
     lw      t4, 16(sp)
-    addi    sp, sp, 16          # align 16 bytes
-    lw      t5, 0(t3)           # t5 = expect data
-    mv      a1, a0              # save return value in a1
+    addi    sp, sp, 32          # align 16 bytes
+    mv      a2, a0              # save return value in a2
+
+    lw      a0, 0(t0)           # load bf16 a test value
+    lw      a1, 0(t2)           # load bf16 b test value
+    addi    sp, sp, -32         # align 16 bytes
+    sw      t4, 16(sp)
+    sw      t3, 12(sp)
+    sw      t2, 8(sp)
+    sw      t1, 4(sp)
+    sw      t0, 0(sp)
+    jal     bf16_sub            # call conversion (a0 is result)
+    lw      t0, 0(sp)
+    lw      t1, 4(sp)
+    lw      t2, 8(sp)
+    lw      t3, 12(sp)
+    lw      t4, 16(sp)
+    addi    sp, sp, 32          # align 16 bytes
+    mv      a3, a0              # save return value in a3
+
 #display actual start
+    la      a0, msg_actual_add
+    li      a7, 4
+    ecall
+    mv      a0, a2             # display bf16_add acutal
+    li      a7, 34
+    ecall
+    la      a0, msg_actual_sub
+    li      a7, 4
+    ecall
+    mv      a0, a3             # display bf16_sub acutal
     li      a7, 34
     ecall
     la      a0, msg_next
     li      a7, 4
     ecall
 #display actual end
-    mv      a0, a1             # restore value from a1
-    bne     t5, a0, test_fail
+    lw      t5, 0(t3)          # t5 = expect sub data
+    bne     t5, a2, test_fail  # check expect add data != actual add data
+    lw      t6, 0(t4)          # t6 = expect sub data
+    bne     t6, a3, test_fail  # check expect sub data != actual sub data
     addi    t0, t0, 4
     addi    t2, t2, 4
     addi    t3, t3, 4
@@ -171,7 +205,11 @@ done:
 bf16_sub:
     li      t0, BF16_SIGN_MASK
     xor     a1, a1, t0          # b.bits ^= BF16_SIGN_MASK
+    addi    sp, sp, -16         # align 16 bytes
+    sw      ra, 0(sp)
     jal     bf16_add            # a0 = bf16_add(a0, a1)
+    lw      ra, 0(sp)
+    addi    sp, sp, 16         # align 16 bytes
     ret
 # bf16_add
 # | variable       | Reg   |
