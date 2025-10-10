@@ -72,8 +72,10 @@ static inline bf16_t bf16_mul(bf16_t a, bf16_t b)
 
     uint32_t result_mant = 0;
     for (int i = 0; i < 32; i++) {
-        if (mant_b & (1 << i))
-            result_mant += mant_a << i;
+        uint32_t mask = -((mant_b >> i) & 1);
+        // bit=1 , mask=0xFFFFFFFF
+        // bit=0 , mask=0x00000000
+        result_mant += (mant_a << i) & mask;
     }
 
     int32_t result_exp = (int32_t) exp_a + exp_b - BF16_EXP_BIAS + exp_adjust;
