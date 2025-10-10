@@ -1,0 +1,4 @@
+*.gcov
+*.gcno
+*.gcda
+*.info
