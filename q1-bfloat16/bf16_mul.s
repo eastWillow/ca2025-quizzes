@@ -172,25 +172,24 @@ done:
     ecall
 
 # bf16_mul
-# | variable       | Reg   |
-# | -------------- | ----- |
-# | a.bits/result  | a0    |
-# | b.bits         | a1    |
-# | sign_a         | s0    |
-# | sign_b         | s1    |
-# | exp_a          | s2    |
-# | exp_b          | s3    |
-# | mant_a         | s4    |
-# | mant_b         | s5    |
-# | exp_diff       | s6    |
-# | const.imm 0xFF | s7    |
-# | const.imm 8    | s8    |
-# | const.imm -8   | s9    |
-# | const.imm 0x100| s10   |
-# | temp           | s11   |
-# | result_sign    | t0    |
-# | result_exp     | t1    |
-# | result_mant    | t2    |
+# | variable                | Reg   |
+# | ----------------------- | ----- |
+# | a.bits/result           | a0    |
+# | b.bits                  | a1    |
+# | sign_a                  | s0    |
+# | sign_b                  | s1    |
+# | exp_a                   | s2    |
+# | exp_b                   | s3    |
+# | mant_a                  | s4    |
+# | mant_b                  | s5    |
+# | const.imm BF16_EXP_MASK | s6    |
+# | const.imm 0xFF          | s7    |
+# | const.imm 0x80          | s8    |
+# | const.imm 0x8000 [15:0] | s9    |
+# | temp                    | s10   |
+# | result_sign             | t0    |
+# | result_exp              | t1    |
+# | result_mant             | t2    |
 
 bf16_mul:
     ret
