@@ -189,6 +189,7 @@ bf16_sub:
 # | const.imm 8    | s8    |
 # | const.imm -8   | s9    |
 # | const.imm 0x100| s10   |
+# | temp           | s11   |
 # | result_sign    | t0    |
 # | result_exp     | t1    |
 # | result_mant    | t2    |
@@ -295,4 +296,31 @@ exp_diff_lt_zero:
     sll     s4, s4, s6
 
 check_sign_a_equ_sign_b:
+    bne     s0, s1, sign_a_neq_sign_b
+    mv      t0, s0  #result_sign = sign_a;
+    add     t2, s4, s5 #result_mant = (uint32_t) mant_a + mant_b;
+    and     s11, t2, s10 # s11 = result_mant & 0x100
+    beqz    s11, calculate_result
+    srli    t2, t2, 1
+    addi    t1, t1, 1
+    blt     t1, s7, calculate_result
+    slli    a0, t0, 15
+    li      s11, BF16_POS_INF
+    or      a0, a0, s11
+    ret     # return result a0
+sign_a_neq_sign_b:
+    blt     s4, s5, mant_a_lt_mant_b
+    mv      t0, s0  # result_sign = sign_a;
+    sub     t2, s4, s5 # result_mant = mant_a - mant_b;
+    j       check_result_mant_zero
+mant_a_lt_mant_b:
+    mv      t0, s1  # result_sign = sign_b;
+    sub     t2, s5, s4 # result_mant = mant_b - mant_a;
+check_result_mant_zero:
+    bnez    t2, result_mant_ne_zero
+    mv      a0, x0     # return BF16_ZERO
+    ret
+result_mant_ne_zero:
+
+calculate_result:
     ret
