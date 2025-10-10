@@ -186,7 +186,8 @@ done:
 # | const.imm 0xFF          | s7    |
 # | const.imm 0x80          | s8    |
 # | const.imm 0x8000 [15:0] | s9    |
-# | temp                    | s10   |
+# | exp_adjust              | s10   |
+# | temp                    | s11   |
 # | result_sign             | t0    |
 # | result_exp              | t1    |
 # | result_mant             | t2    |
@@ -249,10 +250,35 @@ check_a_zero:
     ret
 
 check_b_zero:
-    bnez    s3, exp_adjust
-    bnez    s5, exp_adjust
+    bnez    s3, exp_a_adjust
+    bnez    s5, exp_a_adjust
     slli    a0, t0, 15 # result_sign << 15
     ret
 
-exp_adjust:
-    ret
+exp_a_adjust:
+    beqz    s2, exp_a_adjust_loop
+    or      s4, s4, s8 # mant_a |= 0x80;
+    j       exp_b_adjust
+exp_a_adjust_loop:
+    and     s11, s4, s8  # s11 = mant_a & 0x80
+    bnez    s11, exp_a_adjust_loop_done
+    slli    s4, s4, 1    # mant_a <<= 1;
+    addi    s10, s10, -1 # exp_adjust--
+    j       exp_a_adjust_loop
+exp_a_adjust_loop_done:
+    addi    s2, x0, 1
+
+exp_b_adjust:
+    beqz    s3, exp_b_adjust_loop
+    or      s5, s5, s8 # mant_b |= 0x80;
+    j       exp_adjust_done
+exp_b_adjust_loop:
+    and     s11, s5, s8  # s11 = mant_b & 0x80
+    bnez    s11, exp_b_adjust_loop_done
+    slli    s5, s5, 1    # mant_b <<= 1;
+    addi    s10, s10, -1 # exp_adjust--
+    j       exp_b_adjust_loop
+exp_b_adjust_loop_done:
+    addi    s3, x0, 1
+
+exp_adjust_done:
