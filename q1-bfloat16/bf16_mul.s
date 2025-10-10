@@ -182,7 +182,7 @@ done:
 # | exp_b                   | s3    |
 # | mant_a                  | s4    |
 # | mant_b                  | s5    |
-# | const.imm BF16_EXP_MASK | s6    |
+# | const.imm BF16_POS_INF  | s6    |
 # | const.imm 0xFF          | s7    |
 # | const.imm 0x80          | s8    |
 # | const.imm 0x8000 [15:0] | s9    |
@@ -192,4 +192,67 @@ done:
 # | result_mant             | t2    |
 
 bf16_mul:
+    # load the const imm to register
+    # sign_a = (a.bits >> 15) & 1
+    srli    s0, a0, 15
+    andi    s0, s0, 1
+    # sign_b = (b.bits >> 15) & 1
+    srli    s1, a1, 15
+    andi    s1, s1, 1
+    # exp_a = (a.bits >> 7) & 0xFF
+    srli    s2, a0, 7
+    andi    s2, s2, 0xFF
+    # exp_b = (b.bits >> 7) & 0xFF
+    srli    s3, a1, 7
+    andi    s3, s3, 0xFF
+    # mant_a = a.bits & 0x7F
+    andi    s4, a0, 0x7F
+    # mant_b = b.bits & 0x7F
+    andi    s5, a1, 0x7F
+    # result_sign = sign_a ^ sign_b;
+    xor     t0, s0, s1
+    # load const.imm
+    li      s6, BF16_POS_INF
+    addi    s7, x0, 0xFF
+    addi    s8, x0, 0x80
+    li      s9, 0x8000
+
+check_exp_a:
+    bne     s2, s7, check_exp_b
+    beqz    s4, check_exp_a_nan
+    ret     #return a
+check_exp_a_nan:
+    bnez    s3, return_inf
+    bnez    s5, return_inf
+    li      a0, BF16_NAN
+    ret
+return_inf:
+    slli    a0, t0, 15 # result_sign << 15
+    or      a0, a0, s6 # a0 | BF16_POS_INF
+    ret
+
+check_exp_b:
+    bne     s3, s7, check_a_zero
+    beqz    s5, check_exp_b_nan
+    mv      a0, a1 # a0 = a1
+    ret     #return b
+check_exp_b_nan:
+    bnez    s2, return_inf
+    bnez    s4, return_inf
+    li      a0, BF16_NAN
+    ret
+
+check_a_zero:
+    bnez    s2, check_b_zero
+    bnez    s4, check_b_zero
+    slli    a0, t0, 15 # result_sign << 15
+    ret
+
+check_b_zero:
+    bnez    s3, exp_adjust
+    bnez    s5, exp_adjust
+    slli    a0, t0, 15 # result_sign << 15
+    ret
+
+exp_adjust:
     ret
