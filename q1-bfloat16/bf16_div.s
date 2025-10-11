@@ -281,4 +281,20 @@ adjust_exp_loop_done:
     srli    t4 , t4,  8 # quotient >>= 8;
 quotient_adjust_exp_done:
     andi    t4,  t4, 0x7F # quotient &= 0x7F;
+
+    blt     t1,  s7, check_exp_le_zero
+    slli    a0,  t0, 15   # a0 = (result_sign << 15)
+    or      a0,  a0, s6   # a0 = a0 | BF16_POS_INF
+    ret
+check_exp_le_zero:
+    bgt     t1,  x0, return_result
+    slli    a0,  t0, 15   # a0 = (result_sign << 15)
+    ret
+return_result:
+    slli    t0,  t0, 15   # result_sign = (result_sign << 15)
+    and     t1,  t1, s7   # result_exp = result_exp & 0xFF
+    slli    t1,  t1, 7    # result_exp = result_exp << 7
+    andi    t4,  t4, 0x7F # quotient = quotient & 0x7F
+    or      a0,  t0, t1   # a0 = result_sign | result_exp
+    or      a0,  a0, t4   # a0 = a0 | quotient
     ret

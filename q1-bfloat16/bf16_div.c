@@ -111,38 +111,48 @@ static inline float bf16_to_f32(bf16_t val)
 int main(void)
 {
     bf16_t test_a_data[] = {
-        0x7FC0,  // NaN
-        0x3F80,  // ÷ NaN
-        0x3F80,  // ÷ 0
-        0x0000,  // 0 ÷ 1
-        0x7F80,  // +Inf ÷ 1
-        0x3F80,  // ÷ +Inf
-        0x0080,  // subnormal ÷ normal
-        0x3E80,  // triggers normalization
-        0x0040,  // exp_a == 0
-        0x3F80,  // result_exp++ (exp_b == 0)
-        0x7F80,  // +Inf ÷ +Inf
-        0x0000,  // 0 ÷ 0
+        0x7FC0,  // 1. NaN
+        0x3F80,  // 2. ÷ NaN
+        0x7F80,  // 11. +Inf ÷ +Inf
+        0x3F80,  // 6. ÷ +Inf
+        0x0000,  // 12. 0 ÷ 0
+        0x3F80,  // 3. ÷ 0
+        0x0000,  // 4. 0 ÷ 1
+        0x7F80,  // 5. +Inf ÷ 1
+        0x0080,  // 7. subnormal ÷ normal
+        0x3E80,  // 8. triggers normalization
+        0x0040,  // 9. exp_a == 0
+        0x3F80,  // 10. result_exp++ (exp_b == 0)
     };
 
     bf16_t test_b_data[] = {
         0x3F80,  // 1. normal
         0x7FC0,  // 2. NaN
+        0x7F80,  // 11. +Inf
+        0x7F80,  // 6. +Inf
+        0x0000,  // 12. zero
         0x0000,  // 3. zero
         0x3F80,  // 4. normal
         0x3F80,  // 5. normal
-        0x7F80,  // 6. +Inf
         0x3F80,  // 7. normal
         0x3F81,  // 8. subnormal to trigger normalization
         0x3F80,  // 9. normal
         0x0040,  // 10. exp zero
-        0x7F80,  // 11. +Inf
-        0x0000,  // 12. zero
     };
 
     bf16_t expect_div_data[] = {
-        0x7FC0, 0x7FC0, 0x7F80, 0x0000, 0x7F80, 0x0000,
-        0x0080, 0x3E7E, 0x0000, 0x7F80, 0x7FC0, 0x7FC0,
+        0x7FC0,  // 1.
+        0x7FC0,  // 2.
+        0x7FC0,  // 11.
+        0x0000,  // 6.
+        0x7FC0,  // 12.
+        0x7F80,  // 3.
+        0x0000,  // 4.
+        0x7F80,  // 5.
+        0x0080,  // 7.
+        0x3E7E,  // 8.
+        0x0000,  // 9.
+        0x7F80,  // 10.
     };
     int total = sizeof(test_a_data) / sizeof(test_a_data[0]);
 
