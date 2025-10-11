@@ -208,6 +208,12 @@ mul_loop:
     addi    s11, s11, 1 # i++
     j       mul_loop
 mul_loop_done:
+    srli    t2, t2, 7   # sq >>= 7
+    ble     t2, s2, set_result # sq <= mant, j set_result
+    sub     s10,t1, s5  # high = mid - 1
+set_result:
+    mv      t0, t1      # result = mid;
+    addi    s9, t1, 1   # low = mid + 1
     j       binary_search_loop
 binary_search_loop_done:
     ret
