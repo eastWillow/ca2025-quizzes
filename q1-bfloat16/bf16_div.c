@@ -59,13 +59,17 @@ static inline bf16_t bf16_div(bf16_t a, bf16_t b)
     uint32_t dividend = (uint32_t) mant_a << 15;
     uint32_t divisor = mant_b;
     uint32_t quotient = 0;
+    uint32_t mask = 0;
+    uint32_t shifted_divisor = 0;
 
     for (int i = 0; i < 16; i++) {
         quotient <<= 1;
-        if (dividend >= (divisor << (15 - i))) {
-            dividend -= (divisor << (15 - i));
-            quotient |= 1;
-        }
+        shifted_divisor = (divisor << (15 - i));
+        mask = (dividend < shifted_divisor);
+        mask = mask ^ 1;
+        mask = -mask;
+        dividend -= (shifted_divisor) &mask;
+        quotient |= 1 & mask;
     }
 
     int32_t result_exp = (int32_t) exp_a - exp_b + BF16_EXP_BIAS;
