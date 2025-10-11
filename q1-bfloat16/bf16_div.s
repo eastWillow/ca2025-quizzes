@@ -181,7 +181,7 @@ bf16_div:
     addi    s9, x0, 16
 
 check_exp_b:
-    bne     s3, s7, check_exp_b_nan
+    bne     s3, s7, check_exp_b_nan_or_inf
     beqz    s5, check_inf_div_inf
     mv      a0, a1 # a0 = a1
     ret     #return b
@@ -194,5 +194,18 @@ return_zero:
     slli    a0, t0, 15 # a0 = result_sign << 15
     ret     # return a0
 
-check_exp_b_nan:
+check_exp_b_nan_or_inf:
+    bnez    s3, check_exp_a
+    bnez    s5, check_exp_a
+    bnez    s2, return_inf
+    bnez    s4, return_inf
+    li      a0, BF16_NAN # a0 = BF16_NAN
+    ret
+
+return_inf:
+    slli    a0, t0, 15 # a0 = result_sign << 15
+    or      a0, a0, s6 # a0 = a0 | BF16_POS_INF
+    ret     # return a0
+
+check_exp_a:
     ret
