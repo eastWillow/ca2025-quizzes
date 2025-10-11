@@ -135,6 +135,7 @@ int main(void)
         {.bits = 0x0040},  // Denormal
         {.bits = 0x4000},  // 2.0 (odd exponent)
         {.bits = 0x3F80},  // 1.0 (even exponent)
+        {.bits = 0x3e80},  // 0.25
         {.bits = 0x7E80},  // overflow case
         {.bits = 0x0080},  // underflow case
         {.bits = 0x407F},  // 3.984375 result is 255
@@ -150,6 +151,7 @@ int main(void)
         {.bits = 0x0000},  // sqrt(denormal) = 0
         {.bits = 0x3FB5},  // sqrt(2.0) ≈ 1.414
         {.bits = 0x3F80},  // sqrt(1.0) = 1.0
+        {.bits = 0x3F00},  // sqrt(0.25) = 0.5
         {.bits = 0x5F00},  // overflow → +Inf
         {.bits = 0x2000},  // underflow → 0
         {.bits = 0x3FFF},  // sqrt(3.984375)
