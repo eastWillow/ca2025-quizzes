@@ -135,4 +135,45 @@ done:
 # |                         | t6    |
 
 bf16_sqrt:
+    # load the const imm to register
+    # sign = (a.bits >> 15) & 1
+    srli    s0, a0, 15
+    andi    s0, s0, 1
+    # exp = ((a.bits >> 7) & 0xFF);
+    srli    s1, a0, 7
+    andi    s1, s1, 0xFF
+    # mant = a.bits & 0x7F;
+    andi    s2, a0, 0x7F
+    # load const imm
+    addi    s3, x0, 0xFF
+    li      s4, BF16_NAN
+    addi    s5, x0, 1
+    li      s6, BF16_POS_INF
+check_exp_nan:
+    bne     s1, s3, check_sqrt_zero
+    beqz    s2, check_inf_sign
+    ret     # return a0
+check_inf_sign:
+    beqz    s0, return_a
+    mv      a0, s4 # a0 = BF16_NAN
+return_a:
+    ret     # return
+
+check_sqrt_zero:
+    bnez    s1, check_neg_sign
+    bnez    s2, check_neg_sign
+    mv      a0, x0 # a0 = 0
+    ret     # return
+
+check_neg_sign:
+    beqz    s0, check_exp_denormal
+    mv      a0, s4 # a0 = BF16_NAN
+    ret
+
+check_exp_denormal:
+    bnez    s1, bit_square_roo_algotithm
+    mv      a0, x0 # a0 = 0
+    ret
+
+bit_square_roo_algotithm:
     ret
