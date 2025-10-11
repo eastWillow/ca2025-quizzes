@@ -75,7 +75,14 @@ static inline bf16_t bf16_sqrt(bf16_t a)
     /* Binary search for square root of m */
     while (low <= high) {
         uint32_t mid = (low + high) >> 1;
-        uint32_t sq = (mid * mid) / 128; /* Square and scale */
+        uint32_t sq = 0;
+        for (int i = 0; i < 32; i++) {
+            uint32_t mask = -((mid >> i) & 1);
+            // bit=1 , mask=0xFFFFFFFF
+            // bit=0 , mask=0x00000000
+            sq += (mid << i) & mask;
+        }
+        sq = sq >> 7;
 
         if (sq <= mant) {
             result = mid; /* This could be our answer */
