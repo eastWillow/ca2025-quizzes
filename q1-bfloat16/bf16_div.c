@@ -136,6 +136,10 @@ int main(void)
         0x0000,  // 12. zero
     };
 
+    bf16_t expect_div_data[] = {
+        0x7FC0, 0x7FC0, 0x7F80, 0x0000, 0x7F80, 0x0000,
+        0x0080, 0x3E7E, 0x0000, 0x7F80, 0x7FC0, 0x7FC0,
+    };
     int total = sizeof(test_a_data) / sizeof(test_a_data[0]);
 
     for (int i = 0; i < total; i++) {
@@ -148,7 +152,7 @@ int main(void)
         printf("bf16_a: 0x%04X ", a.bits);
         printf("bf16_b: 0x%04X ", b.bits);
         printf("bf16_div: 0x%04X ", bf16_div(a, b).bits);
-        // printf("expect_div: 0x%04X ", expect_div_data[i].bits);
+        printf("expect_div: 0x%04X ", expect_div_data[i].bits);
 
         printf("f32_a: %+e ", bf16_to_f32(a));
         printf("f32_b: %+e ", bf16_to_f32(b));
@@ -156,7 +160,7 @@ int main(void)
         memcpy(&f32bits, &val, sizeof(float));
         printf("f32_div: %+f ", val);
         printf("f32_div: 0x%08X\n", f32bits);
-        // assert(bf16_div(a, b).bits == expect_div_data[i].bits);
+        assert(bf16_div(a, b).bits == expect_div_data[i].bits);
     }
 
     printf("All test cases passed!\n");
