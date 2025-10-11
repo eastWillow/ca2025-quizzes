@@ -208,4 +208,21 @@ return_inf:
     ret     # return a0
 
 check_exp_a:
+    bne     s2, s7, check_exp_a_mant_a
+    beqz    s4, return_inf
+    ret     # return a0
+
+check_exp_a_mant_a:
+    bnez    s2, check_exp_a_for_mant_a
+    bnez    s4, check_exp_a_for_mant_a
+    j       return_zero
+
+check_exp_a_for_mant_a:
+    beqz    s2, check_exp_b_for_mant_b
+    ori     s4, s4, 0x80
+check_exp_b_for_mant_b:
+    beqz    s3  div_loop
+    ori     s5, s5, 0x80
+
+div_loop:
     ret
