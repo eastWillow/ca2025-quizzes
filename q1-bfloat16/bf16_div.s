@@ -151,13 +151,16 @@ done:
 # | const.imm 0x8000 [15:0] | s8    |
 # | const.imm 16            | s10   |
 # | i                       | s11   |
+# | adjust_exp:quotient & s8| s11   |
 # | result_sign             | t0    |
 # | result_exp              | t1    |
 # | result_mant             | t2    |
 # | dividend                | t3    |
 # | quotient                | t4    |
 # | div_loop:mask           | t5    |
+# | adjust_exp:result_exp>1 | t5    |
 # | div_loop:shifted_divisor| t6    |
+# | adjust_exp:1            | t6    |
 
 bf16_div:
     # load the const imm to register
@@ -251,4 +254,31 @@ div_loop:
     addi    s11,s11, 1  # i++
     j       div_loop
 div_loop_done:
+    sub     t1, s2, s3  # result_exp = exp_a - exp_b
+    addi    t1, t1, BF16_EXP_BIAS # result_exp + BF16_EXP_BIAS
+
+    bnez    s2, check_exp_b_eqz
+    addi    t1, t1, -1  # result_exp--;
+check_exp_b_eqz:
+    bnez    s3, check_quotient
+    addi    t1, t1, 1   # result_exp++;
+
+check_quotient:
+    and     s11, t4, s9 # quotient & 0x8000
+    beqz    s11, quotient_adjust_exp_loop
+    srli    t4,  t4, 8  # quotient >>= 8;
+    j       quotient_adjust_exp_done
+quotient_adjust_exp_loop:
+    and     s11, t4, s9 # !(quotient & 0x8000)
+    bnez    s11, adjust_exp_loop_done
+    addi    t6 , x0,  1  # t6 = 1
+    slt     t5 , t6,  t1 # t5 = (1 < result_exp)
+    beqz    t5 , adjust_exp_loop_done
+    slli    t4 , t4,  1 # quotient <<= 1;
+    addi    t1 , t1, -1 # result_exp--;
+    j       quotient_adjust_exp_loop
+adjust_exp_loop_done:
+    srli    t4 , t4,  8 # quotient >>= 8;
+quotient_adjust_exp_done:
+    andi    t4,  t4, 0x7F # quotient &= 0x7F;
     ret
