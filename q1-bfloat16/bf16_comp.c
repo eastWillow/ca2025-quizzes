@@ -65,9 +65,9 @@ static inline bool bf16_lt(bf16_t a, bf16_t b)  // a < b
     uint32_t sign_a = (a.bits >> 15) & 1;  // s6
     uint32_t sign_b = (b.bits >> 15) & 1;  // s7
     if (sign_a != sign_b)
-        return sign_a > sign_b;
+        return sign_b < sign_a;
 
-    return sign_a ? a.bits > b.bits : a.bits < b.bits;
+    return sign_a ? b.bits < a.bits : a.bits < b.bits;
 }
 
 static inline bool bf16_gt(bf16_t a, bf16_t b)  // a > b
