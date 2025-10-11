@@ -155,4 +155,44 @@ done:
 # | result_mant             | t2    |
 
 bf16_div:
+    # load the const imm to register
+    # sign_a = (a.bits >> 15) & 1
+    srli    s0, a0, 15
+    andi    s0, s0, 1
+    # sign_b = (b.bits >> 15) & 1
+    srli    s1, a1, 15
+    andi    s1, s1, 1
+    # exp_a = (a.bits >> 7) & 0xFF
+    srli    s2, a0, 7
+    andi    s2, s2, 0xFF
+    # exp_b = (b.bits >> 7) & 0xFF
+    srli    s3, a1, 7
+    andi    s3, s3, 0xFF
+    # mant_a = a.bits & 0x7F
+    andi    s4, a0, 0x7F
+    # mant_b = b.bits & 0x7F
+    andi    s5, a1, 0x7F
+    # result_sign = sign_a ^ sign_b;
+    xor     t0, s0, s1
+    # load const.imm
+    li      s6, BF16_POS_INF
+    addi    s7, x0, 0xFF
+    li      s8, 0x8000
+    addi    s9, x0, 16
+
+check_exp_b:
+    bne     s3, s7, check_exp_b_nan
+    beqz    s5, check_inf_div_inf
+    mv      a0, a1 # a0 = a1
+    ret     #return b
+check_inf_div_inf:
+    bne     s2, s7, return_zero
+    bnez    s4, return_zero
+    li      a0, BF16_NAN # a0 = BF16_NAN
+    ret
+return_zero:
+    slli    a0, t0, 15 # a0 = result_sign << 15
+    ret     # return a0
+
+check_exp_b_nan:
     ret
