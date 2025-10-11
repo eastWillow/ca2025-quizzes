@@ -211,9 +211,23 @@ mul_loop_done:
     srli    t2, t2, 7   # sq >>= 7
     ble     t2, s2, set_result # sq <= mant, j set_result
     sub     s10,t1, s5  # high = mid - 1
+    j       binary_search_loop
 set_result:
     mv      t0, t1      # result = mid;
     addi    s9, t1, 1   # low = mid + 1
     j       binary_search_loop
 binary_search_loop_done:
+    andi    t3, t0, 0x7F          # new_mant = result & 0x7F
+    blt     s8, s3, check_new_exp # new_exp < 0xFF, j check_new_exp
+    mv      a0, s6                # a0 = BF16_POS_INF
+    ret
+check_new_exp:
+    bgt     s8, x0, return_result
+    mv      a0, x0      # a0 = BF16_ZERO
+    ret
+
+return_result:
+    andi    s8, s8, 0xFF # new_exp &= 0xFF
+    slli    s8, s8, 7    # new_exp <<= 7
+    or      a0, s8, t3   # a0 = new_exp | new_mant
     ret
