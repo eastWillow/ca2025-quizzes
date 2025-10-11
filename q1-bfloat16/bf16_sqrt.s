@@ -122,17 +122,18 @@ done:
 # | const. imm BF16_NAN     | s4    |
 # | const. imm 1            | s5    |
 # | const. imm BF16_POS_INF | s6    |
-# | e                       | s7    |
+# | e/(mid << i)            | s7    |
 # | new_exp                 | s8    |
 # | low                     | s9    |
 # | high                    | s10   |
+# | i                       | s11   |
 # | result                  | t0    |
 # | mid                     | t1    |
 # | sq                      | t2    |
 # | new_mant                | t3    |
-# |                         | t4    |
-# |                         | t5    |
-# |                         | t6    |
+# | const. imm BF16_EXP_BIAS| t4    |
+# | mask                    | t5    |
+# | const. imm 32           | t6    |
 
 bf16_sqrt:
     # load the const imm to register
@@ -149,6 +150,8 @@ bf16_sqrt:
     li      s4, BF16_NAN
     addi    s5, x0, 1
     li      s6, BF16_POS_INF
+    addi    t4, x0, BF16_EXP_BIAS
+    addi    t6, x0, 32
 check_exp_nan:
     bne     s1, s3, check_sqrt_zero
     beqz    s2, check_inf_sign
@@ -176,4 +179,22 @@ check_exp_denormal:
     ret
 
 bit_square_roo_algotithm:
+    sub     s7, s1, t4 # e = exp - BF16_EXP_BIAS;
+    ori     s2, s2, 0x80 # mant = 0x80 | mant
+    andi    t5, s7, 1  # mask = (e & 1)
+    sll     s2, s2, t5 # mant <<= mask
+    sub     s8, s7, t5 # new_exp = e - mask
+    srai    s8, s8, 1  # new_exp >>= 1 new_exp is int32_t so need use arithmetic shift
+    add     s8, s8, t4 # new_exp += BF16_EXP_BIAS
+binary_search_for_square_root_of_m_init:
+    addi    s9, x0, 90  # low = 90
+    addi    s10,x0, 256 # high = 256
+    addi    t0, x0, 128 # result = 128
+binary_search_loop:
+    bgt     s9, s10, binary_search_loop_done
+    add     t1, s9, s10 # mid = mid = (low + high)
+    srli    t1, t1, 1   # mid >>= 1
+
+    j       binary_search_loop
+binary_search_loop_done:
     ret
