@@ -145,14 +145,19 @@ done:
 # | exp_a                   | s2    |
 # | exp_b                   | s3    |
 # | mant_a                  | s4    |
-# | mant_b                  | s5    |
+# | mant_b(divisor)         | s5    |
 # | const.imm BF16_POS_INF  | s6    |
 # | const.imm 0xFF          | s7    |
 # | const.imm 0x8000 [15:0] | s8    |
 # | const.imm 16            | s10   |
+# | i                       | s11   |
 # | result_sign             | t0    |
 # | result_exp              | t1    |
 # | result_mant             | t2    |
+# | dividend                | t3    |
+# | quotient                | t4    |
+# | div_loop:mask           | t5    |
+# | div_loop:shifted_divisor| t6    |
 
 bf16_div:
     # load the const imm to register
