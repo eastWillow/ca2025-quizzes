@@ -198,7 +198,7 @@ loop:
     ecall
 #display actual end
     lw      t6, 0(t4)          # t6 = expect lt data
-#    bne     t6, s1, test_fail  # check expect lt data != actual lt data
+    bne     t6, s1, test_fail  # check expect lt data != actual lt data
 
 #test bf16_lt
     lw      a0, 0(t0)           # load bf16 a test value
@@ -314,6 +314,46 @@ eq_true:
     ret     # return 1
 
 bf16_lt:
+    # load the const imm to register
+    li      s8,  0x7FFF
+    li      s9,  BF16_EXP_MASK
+    li      s10, BF16_MANT_MASK
+    #
+lt_check_exp_a:
+    and     s0,  a0, s9     # a.bits & BF16_EXP_MASK
+    and     s1,  a0, s10    # a.bits & BF16_MANT_MASK
+    bne     s0,  s9, lt_check_exp_b
+    beqz    s1,  lt_check_exp_b
+    add     a0,  x0, x0     # a0 = 0
+    ret     # return 0
+lt_check_exp_b:
+    and     s2,  a1, s9     # b.bits & BF16_EXP_MASK
+    and     s3,  a1, s10    # b.bits & BF16_MANT_MASK
+    bne     s2,  s9, lt_check_mant
+    beqz    s3,  lt_check_mant
+    add     a0,  x0, x0     # a0 = 0
+    ret     # return 0
+lt_check_mant:
+    and     s4,  a0, s8     # a.bits & 0x7FFF
+    and     s5,  a1, s8     # b.bits & 0x7FFF
+    bnez    s4,  lt_check_sign
+    bnez    s5,  lt_check_sign
+    add     a0,  x0, x0      # a0 = 0
+    ret     # return 0
+lt_check_sign:
+    srli    s6,  a0, 15     # sign_a = a.bits >> 15
+    andi    s6,  s6,  1     # sing_a &= 1
+    srli    s7,  a1, 15     # sign_b = b.bits >> 15
+    andi    s7,  s7,  1     # sign_b &= 1
+    beq     s6,  s7,  lt_check_result
+    slt     a0,  s7,  s6    # a0 = sign_b < sign_a
+    ret
+lt_check_result:
+    beqz    s6,  lt_sign_a_pos
+    slt     a0,  a1,  a0    # a0 = b.bits < a.bits
+    ret
+lt_sign_a_pos:
+    slt     a0,  a0,  a1    # a0 = a.bits < b.bits
     ret
 
 bf16_gt:
