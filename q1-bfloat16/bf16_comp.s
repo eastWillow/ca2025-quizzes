@@ -228,7 +228,7 @@ loop:
     ecall
 #display actual end
     lw      t6, 0(t5)          # t6 = expect gt data
-#    bne     t6, s2, test_fail  # check expect gt data != actual gt data
+    bne     t6, s2, test_fail  # check expect gt data != actual gt data
 
 #display next start
     la      a0, msg_next
@@ -270,7 +270,7 @@ done:
 # | const.imm 0x7FFF        | s8    |
 # | const.imm BF16_EXP_MASK | s9    |
 # | const.imm BF16_MANT_MASK| s10   |
-# |                         | s11   |
+# | temp                    | s11   |
 # |                         | t0    |
 # |                         | t1    |
 # |                         | t2    |
@@ -313,6 +313,10 @@ eq_true:
     addi    a0,  x0, 1      # a0 = 1
     ret     # return 1
 
+bf16_gt:
+    add     s11, x0, a1    # temp = a1
+    add     a1,  x0, a0    # a1 = a0
+    add     a0,  x0, s11   # a0 = temp
 bf16_lt:
     # load the const imm to register
     li      s8,  0x7FFF
@@ -354,7 +358,4 @@ lt_check_result:
     ret
 lt_sign_a_pos:
     slt     a0,  a0,  a1    # a0 = a.bits < b.bits
-    ret
-
-bf16_gt:
     ret
