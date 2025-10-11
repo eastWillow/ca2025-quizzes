@@ -226,8 +226,29 @@ check_exp_a_for_mant_a:
     beqz    s2, check_exp_b_for_mant_b
     ori     s4, s4, 0x80
 check_exp_b_for_mant_b:
-    beqz    s3  div_loop
+    beqz    s3, div_loop_init
     ori     s5, s5, 0x80
 
+div_loop_init:
+    add     s11,x0, x0  # i = 0;
+    slli    t3, s4, 15  # dividend = (uint32_t) mant_a << 15;
+    add     t4, x0, x0  # quotient = 0;
+    add     t5, x0, x0  # mask = 0;
+    add     t6, x0, x0  # shifted_divisor = 0;
 div_loop:
+    bge     s11,s10, div_loop_done # i >= 16 , j div_loop_done
+    slli    t4, t4, 1   # quotient <<= 1;
+    addi    t6, x0, 15  # t6 = 15
+    sub     t6, t6, s11 # t6 = 15 - i
+    sll     t6, s5, t6  # t6 = divisor << (15 - i)
+    slt     t5, t3, t6  # mask = (dividend < shifted_divisor);
+    xori    t5, t5, 1   # mask = mask ^ 1
+    sub     t5, x0, t5  # mask = 0 - mask
+    and     t6, t6, t5  # shifted_divisor = (shifted_divisor) & mask
+    sub     t3, t3, t6  # dividend = dividend - shifted_divisor
+    andi    t5, t5, 1   # mask = mask & 1
+    or      t4, t4, t5  # quotient = quotient | mask
+    addi    s11,s11, 1  # i++
+    j       div_loop
+div_loop_done:
     ret
