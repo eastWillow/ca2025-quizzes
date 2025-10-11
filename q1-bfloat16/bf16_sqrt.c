@@ -84,11 +84,11 @@ static inline bf16_t bf16_sqrt(bf16_t a)
         }
         sq = sq >> 7;
 
-        if (sq <= mant) {
+        if (sq > mant) {
+            high = mid - 1;
+        } else {
             result = mid; /* This could be our answer */
             low = mid + 1;
-        } else {
-            high = mid - 1;
         }
     }
 
