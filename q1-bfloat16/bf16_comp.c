@@ -25,41 +25,48 @@ typedef struct {
 #define BF16_POS_INF ((bf16_t) {.bits = 0x7F80})
 #define BF16_NEG_INF ((bf16_t) {.bits = 0xFF80})
 
-static inline bool bf16_isnan(bf16_t a)
-{
-    return ((a.bits & BF16_EXP_MASK) == BF16_EXP_MASK) &&
-           (a.bits & BF16_MANT_MASK);
-}
-
-static inline bool bf16_isinf(bf16_t a)
-{
-    return ((a.bits & BF16_EXP_MASK) == BF16_EXP_MASK) &&
-           !(a.bits & BF16_MANT_MASK);
-}
-
-static inline bool bf16_iszero(bf16_t a)
-{
-    return !(a.bits & 0x7FFF);
-}
-
 static inline bool bf16_eq(bf16_t a, bf16_t b)
 {
-    if (bf16_isnan(a) || bf16_isnan(b))
+    uint32_t s0 = a.bits & BF16_EXP_MASK;
+    uint32_t s1 = a.bits & BF16_MANT_MASK;
+    if (((s0) == BF16_EXP_MASK) && (s1))
         return false;
-    if (bf16_iszero(a) && bf16_iszero(b))
+
+    uint32_t s2 = b.bits & BF16_EXP_MASK;
+    uint32_t s3 = b.bits & BF16_MANT_MASK;
+    if (((s2) == BF16_EXP_MASK) && (s3))
+        return false;
+
+    uint32_t s4 = a.bits & 0x7FFF;
+    uint32_t s5 = b.bits & 0x7FFF;
+    if (!(s4) && !(s5))
         return true;
+
     return a.bits == b.bits;
 }
 
 static inline bool bf16_lt(bf16_t a, bf16_t b)  // a < b
 {
-    if (bf16_isnan(a) || bf16_isnan(b))
+    uint32_t s0 = a.bits & BF16_EXP_MASK;
+    uint32_t s1 = a.bits & BF16_MANT_MASK;
+    if (((s0) == BF16_EXP_MASK) && (s1))
         return false;
-    if (bf16_iszero(a) && bf16_iszero(b))
+
+    uint32_t s2 = b.bits & BF16_EXP_MASK;
+    uint32_t s3 = b.bits & BF16_MANT_MASK;
+    if (((s2) == BF16_EXP_MASK) && (s3))
         return false;
-    bool sign_a = (a.bits >> 15) & 1, sign_b = (b.bits >> 15) & 1;
+
+    uint32_t s4 = a.bits & 0x7FFF;
+    uint32_t s5 = b.bits & 0x7FFF;
+    if (!(s4) && !(s5))
+        return false;
+
+    uint32_t sign_a = (a.bits >> 15) & 1;  // s6
+    uint32_t sign_b = (b.bits >> 15) & 1;  // s7
     if (sign_a != sign_b)
         return sign_a > sign_b;
+
     return sign_a ? a.bits > b.bits : a.bits < b.bits;
 }
 
