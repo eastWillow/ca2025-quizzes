@@ -10,49 +10,48 @@
 
 .data
 test_a_data:
-    .word 0x00007FC0  # NaN
-    .word 0x00003F80  # ÷ NaN
-    .word 0x00003F80  # ÷ 0
-    .word 0x00000000  # 0 ÷ 1
-    .word 0x00007F80  # +Inf ÷ 1
-    .word 0x00003F80  # ÷ +Inf
-    .word 0x00000080  # subnormal ÷ normal
-    .word 0x00003E80  # triggers normalization
-    .word 0x00000040  # exp_a == 0
-    .word 0x00003F80  # result_exp++ (exp_b == 0)
-    .word 0x00007F80  # +Inf ÷ +Inf
-    .word 0x00000000  # 0 ÷ 0
+    .word 0x00007FC0  # 1. NaN
+    .word 0x00003F80  # 2. ÷ NaN
+    .word 0x00007F80  # 11. +Inf ÷ +Inf
+    .word 0x00003F80  # 6. ÷ +Inf
+    .word 0x00000000  # 12. 0 ÷ 0
+    .word 0x00003F80  # 3. ÷ 0
+    .word 0x00000000  # 4. 0 ÷ 1
+    .word 0x00007F80  # 5. +Inf ÷ 1
+    .word 0x00000080  # 7. subnormal ÷ normal
+    .word 0x00003E80  # 8. triggers normalization
+    .word 0x00000040  # 9. exp_a == 0
+    .word 0x00003F80  # 10. result_exp++ (exp_b == 0)
 test_a_data_end:
     .word 0xFFFFFFFF
 
 test_b_data:
     .word 0x00003F80  # 1. normal
     .word 0x00007FC0  # 2. NaN
+    .word 0x00007F80  # 11. +Inf
+    .word 0x00007F80  # 6. +Inf
+    .word 0x00000000  # 12. zero
     .word 0x00000000  # 3. zero
     .word 0x00003F80  # 4. normal
     .word 0x00003F80  # 5. normal
-    .word 0x00007F80  # 6. +Inf
     .word 0x00003F80  # 7. normal
     .word 0x00003F81  # 8. subnormal to trigger normalization
     .word 0x00003F80  # 9. normal
     .word 0x00000040  # 10. exp zero
-    .word 0x00007F80  # 11. +Inf
-    .word 0x00000000  # 12. zero
 
 expect_div_data:
-    .word 0x00007FC0
-    .word 0x00007FC0
-    .word 0x00007F80
-    .word 0x00000000
-    .word 0x00007F80
-    .word 0x00000000
-    .word 0x00000080
-    .word 0x00003E7E
-    .word 0x00000000
-    .word 0x00007F80
-    .word 0x00007FC0
-    .word 0x00007FC0
-
+    .word 0x00007FC0  # 1.
+    .word 0x00007FC0  # 2.
+    .word 0x00007FC0  # 11.
+    .word 0x00000000  # 6.
+    .word 0x00007FC0  # 12.
+    .word 0x00007F80  # 3.
+    .word 0x00000000  # 4.
+    .word 0x00007F80  # 5.
+    .word 0x00000080  # 7.
+    .word 0x00003E7E  # 8.
+    .word 0x00000000  # 9.
+    .word 0x00007F80  # 10.
 
 msg_a:  .string "a: "
 msg_b:  .string " b: "
