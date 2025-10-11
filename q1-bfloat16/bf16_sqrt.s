@@ -194,7 +194,20 @@ binary_search_loop:
     bgt     s9, s10, binary_search_loop_done
     add     t1, s9, s10 # mid = mid = (low + high)
     srli    t1, t1, 1   # mid >>= 1
-
+mul_loop_init:
+    add     t2, x0, x0  # sq = 0
+    add     s11,x0, x0  # i = 0
+mul_loop:
+    bge     s11, t6, mul_loop_done # i >= 32, j mul_loop_done
+    srl     t5, t1, s11 # mask = mid >> i
+    andi    t5, t5, 1   # mask &= 1
+    sub     t5, x0, t5  # mask = 0 - mask
+    sll     s7, t1, s11 # s7 = mid << i
+    and     s7, s7, t5  # s7 = s7 & mask
+    add     t2, t2, s7  # sq += s7
+    addi    s11, s11, 1 # i++
+    j       mul_loop
+mul_loop_done:
     j       binary_search_loop
 binary_search_loop_done:
     ret
