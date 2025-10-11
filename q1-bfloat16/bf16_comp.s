@@ -254,22 +254,22 @@ done:
     li      a7, 10
     ecall
 
-# bf16_mul
+# bf16_eq/bf16_lt/bf16_gt
 # | variable                | Reg   |
 # | ----------------------- | ----- |
 # | a.bits/result           | a0    |
 # | b.bits                  | a1    |
-# |                         | s0    |
-# |                         | s1    |
-# |                         | s2    |
-# |                         | s3    |
-# |                         | s4    |
-# |                         | s5    |
-# |                         | s6    |
-# |                         | s7    |
-# |                         | s8    |
-# |                         | s9    |
-# |                         | s10   |
+# | a.bits & BF16_EXP_MASK  | s0    |
+# | a.bits & BF16_MANT_MASK | s1    |
+# | b.bits & BF16_EXP_MAS   | s2    |
+# | b.bits & BF16_MANT_MASK | s3    |
+# | a.bits & 0x7FFF         | s4    |
+# | b.bits & 0x7FFF         | s5    |
+# | sign_a(a.bits >> 15) & 1| s6    |
+# | sing_b(b.bits >> 15) & 1| s7    |
+# | const.imm 0x7FFF        | s8    |
+# | const.imm BF16_EXP_MASK | s9    |
+# | const.imm BF16_MANT_MASK| s10   |
 # |                         | s11   |
 # |                         | t0    |
 # |                         | t1    |
