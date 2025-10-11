@@ -60,12 +60,9 @@ static inline bf16_t bf16_sqrt(bf16_t a)
     mant = 0x80 | mant; /* Range [128, 256) representing [1.0, 2.0) */
 
     /* Adjust for odd exponents: sqrt(2^odd * m) = 2^((odd-1)/2) * sqrt(2*m) */
-    if (e & 1) {
-        mant <<= 1; /* Double mantissa for odd exponent */
-        new_exp = ((e - 1) >> 1) + BF16_EXP_BIAS;
-    } else {
-        new_exp = (e >> 1) + BF16_EXP_BIAS;
-    }
+    int32_t mask = (e & 1);
+    mant <<= mask; /* Double mantissa for odd exponent */
+    new_exp = ((e - mask) >> 1) + BF16_EXP_BIAS;
 
     /* Now m is in range [128, 256) or [256, 512) if exponent was odd */
     /* Binary search for integer square root */
