@@ -149,7 +149,7 @@ done:
 # | const.imm BF16_POS_INF  | s6    |
 # | const.imm 0xFF          | s7    |
 # | const.imm 0x8000 [15:0] | s8    |
-# | const.imm 16            | s10   |
+# | const.imm 16            | s9    |
 # | i                       | s11   |
 # | adjust_exp:quotient & s8| s11   |
 # | result_sign             | t0    |
@@ -239,7 +239,7 @@ div_loop_init:
     add     t5, x0, x0  # mask = 0;
     add     t6, x0, x0  # shifted_divisor = 0;
 div_loop:
-    bge     s11,s10, div_loop_done # i >= 16 , j div_loop_done
+    bge     s11,s9, div_loop_done # i >= 16 , j div_loop_done
     slli    t4, t4, 1   # quotient <<= 1;
     addi    t6, x0, 15  # t6 = 15
     sub     t6, t6, s11 # t6 = 15 - i
@@ -264,12 +264,12 @@ check_exp_b_eqz:
     addi    t1, t1, 1   # result_exp++;
 
 check_quotient:
-    and     s11, t4, s9 # quotient & 0x8000
+    and     s11, t4, s8 # quotient & 0x8000
     beqz    s11, quotient_adjust_exp_loop
     srli    t4,  t4, 8  # quotient >>= 8;
     j       quotient_adjust_exp_done
 quotient_adjust_exp_loop:
-    and     s11, t4, s9 # !(quotient & 0x8000)
+    and     s11, t4, s8 # quotient & 0x8000
     bnez    s11, adjust_exp_loop_done
     addi    t6 , x0,  1  # t6 = 1
     slt     t5 , t6,  t1 # t5 = (1 < result_exp)
