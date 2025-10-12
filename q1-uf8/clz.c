@@ -1,3 +1,10 @@
+/*
+gcc -O0 -fprofile-arcs -ftest-coverage clz.c -o clz &&\
+./clz &&\
+gcov -o clz clz.c &&\
+lcov --capture --directory . --output-file coverage.info &&\
+genhtml coverage.info --output-directory html_report
+*/
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
