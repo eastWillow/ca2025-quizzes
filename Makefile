@@ -1,7 +1,34 @@
-all:
-	gcc -Wall -O2 -o q1-vector q1-vector.c
-	gcc -Wall -O2 -o q1-uf8 q1-uf8.c
-	gcc -Wall -O2 -o q1-bfloat16 q1-bfloat16.c
+ARCH = -march=rv32izicsr
+LINKER_SCRIPT = linker.ld
+CROSS_COMPILE = riscv-none-elf-
+
+AFLAGS = -g $(ARCH)
+CFLAGS = -g -march=rv32i_zicsr
+LDFLAGS = -T $(LINKER_SCRIPT)
+EXEC = test.elf
+
+CC = $(CROSS_COMPILE)gcc
+AS = $(CROSS_COMPILE)as
+LD = $(CROSS_COMPILE)ld
+OBJDUMP = $(CROSS_COMPILE)objdump
+
+OBJS = start.o main.o perfcounter.o
+
+.PHONY: all run dump clean
+
+all: $(EXEC)
+
+$(EXEC): $(OBJS) $(LINKER_SCRIPT)
+	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+
+%.o: %.S
+	$(AS) $(AFLAGS) $< -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) $< -o $@ -c
+
+dump: $(EXEC)
+	$(OBJDUMP) -Ds $< | less
 
 clean:
-	rm -f q1-vector q1-uf8 q1-bfloat16
+	rm -f $(EXEC) $(OBJS)
