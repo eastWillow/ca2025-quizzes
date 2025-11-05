@@ -86,6 +86,30 @@ static void print_dec(unsigned long val)
     printstr(p, (buf + sizeof(buf) - p));
 }
 
+/* Simple integer to hex string conversion */
+static void print_hex(unsigned long val)
+{
+    char buf[20];
+    char *p = buf + sizeof(buf) - 1;
+    *p = '\n';
+    p--;
+
+    if (val == 0) {
+        *p = '0';
+        p--;
+    } else {
+        while (val > 0) {
+            int digit = val & 0xf;
+            *p = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
+            p--;
+            val >>= 4;
+        }
+    }
+
+    p++;
+    printstr(p, (buf + sizeof(buf) - p));
+}
+
 extern uint64_t get_cycles(void);
 extern uint64_t get_instret(void);
 
