@@ -4,6 +4,10 @@
 str:
     .ascii "Hello World\n"
      .set str_size, .-str
+endl:
+    .ascii "\n"
+     .set endl_size, .-endl
+
     .section .text._start
     .globl _start
     .extern printstr
@@ -25,6 +29,18 @@ _start:
     # Call main
     la a0, str   # address of string
     li a1, str_size  # length of string
+    call printstr
+
+    li a0, 55
+    call print_dec
+    la a0, endl   # address of string
+    li a1, endl_size  # length of string
+    call printstr
+
+    li a0, 0xAA
+    call print_hex
+    la a0, endl   # address of string
+    li a1, endl_size  # length of string
     call printstr
 
     # Exit syscall (if main returns)
