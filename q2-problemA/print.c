@@ -112,3 +112,12 @@ void print_hex(unsigned long val)
     printstr(p, (buf + sizeof(buf) - p));
     return;
 }
+
+void print_char(unsigned long val)
+{
+    char buf[2] = {0, 0};
+
+    buf[0] = buf[0] + val;
+    printstr(buf, 2);
+    return;
+}
