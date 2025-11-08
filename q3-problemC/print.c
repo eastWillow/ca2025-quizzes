@@ -11,7 +11,7 @@ void printstr(char *ptr, unsigned long length)
         "ecall;"
         :
         : "r"(ptr), "r"(length)
-        : "a0", "a1", "a2", "a7");
+        : "a0", "a1", "a2", "a7", "memory");
     return;
 }
 

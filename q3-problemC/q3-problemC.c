@@ -37,7 +37,9 @@ static inline ticks getticks(void)
         "seqz %0, %0\n"
         "sub %0, zero, %0\n"
         "and %1, %1, %0\n"
-        : "=r"(h), "=r"(l), "=r"(h2));
+        : "=r"(h), "=r"(l), "=r"(h2)
+        :
+        : "memory");
     result = (((uint64_t) h) << 32) | ((uint64_t) l);
     return result;
 }
