@@ -3,6 +3,8 @@
 extern void printstr(char *ptr, unsigned long length);
 extern void print_dec(unsigned long val);
 extern void print_char(unsigned long val);
+extern uint64_t get_cycles(void);
+extern uint64_t get_instret(void);
 
 #define TEST_OUTPUT(msg, length) printstr(msg, length)
 
@@ -127,8 +129,11 @@ int main(void)
 {
     uint32_t test_values[] = {1, 4, 16, 20, 100, 1024, 65536, 4294967295U};
     uint32_t expect_values[] = {65536, 32768, 16384, 14654, 6553, 2048, 256, 1};
-
     int num_tests = sizeof(test_values) / sizeof(test_values[0]);
+
+    uint64_t start_cycles, end_cycles, cycles_elapsed;
+    uint64_t start_instret, end_instret, instret_elapsed;
+    ticks start_ticks, end_ticks, ticks_elapsed;
 
     // printf("x\t\tfast_rsqrt(x)\tapprox sqrt\t math.h
     // \trelative_error(%%)\n");
@@ -137,6 +142,10 @@ int main(void)
     TEST_LOGGER("x\t\tfast_rsqrt(x)\t expect value\n");
     TEST_LOGGER(
         "-------------------------------------------------------------\n");
+
+    start_ticks = getticks();
+    start_cycles = get_cycles();
+    start_instret = get_instret();
 
     for (int i = 0; i < num_tests; i++) {
         uint32_t x = test_values[i];
@@ -166,6 +175,24 @@ int main(void)
         // y_true,
         //        rel_err);
     }
+
+    end_ticks = getticks();
+    end_cycles = get_cycles();
+    end_instret = get_instret();
+
+    cycles_elapsed = end_cycles - start_cycles;
+    instret_elapsed = end_instret - start_instret;
+    ticks_elapsed = end_ticks - start_ticks;
+
+    TEST_LOGGER("  Cycles: ");
+    print_dec((unsigned long) cycles_elapsed);
+    print_char('\n');
+    TEST_LOGGER("  Instructions: ");
+    print_dec((unsigned long) instret_elapsed);
+    print_char('\n');
+    TEST_LOGGER("  Ticks: ");
+    print_dec((unsigned long) ticks_elapsed);
+    print_char('\n');
 
     TEST_LOGGER("All test pass\n");
     return 0;
