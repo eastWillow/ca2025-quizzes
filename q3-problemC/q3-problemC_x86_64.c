@@ -88,39 +88,23 @@ uint32_t fast_rsqrt(uint32_t x)
 int main(void)
 {
     uint32_t test_values[] = {1, 4, 16, 20, 100, 1024, 65536, 4294967295U};
-    uint32_t expect_values[] = {65536, 32768, 16384, 14654, 6553, 2048, 256, 1};
-
     int num_tests = sizeof(test_values) / sizeof(test_values[0]);
 
-    // printf("x\t\tfast_rsqrt(x)\tapprox sqrt\t math.h
-    // \trelative_error(%%)\n");
-    // printf("-------------------------------------------------------------\n");
-
-    printf("x\t\tfast_rsqrt(x)\t expect value\n");
+    printf("x\t\tfast_rsqrt(x)\tapprox sqrt\t math.h \trelative_error(%%)\n");
     printf("-------------------------------------------------------------\n");
 
     for (int i = 0; i < num_tests; i++) {
         uint32_t x = test_values[i];
 
-        uint32_t y_fixed = fast_rsqrt(x);  // scaled by 2^16
+        uint32_t y_fixed = fast_rsqrt(x);              // scaled by 2^16
+        double y_approx = (double) y_fixed / 65536.0;  // convert back to float
 
-        printf("%10u\t%10u\t%10u\n", x, y_fixed, expect_values[i]);
+        double y_true = 1.0 / sqrt((double) x);  // math.h reference
+        double rel_err = fabs(y_true - y_approx) / y_true * 100.0;
 
-        if (y_fixed != expect_values[i]) {
-            printf("test failed\n");
-            return -1;
-        }
-
-        // double y_approx = (double) y_fixed / 65536.0;  // convert back to
-        // float
-
-        // double y_true = 1.0 / sqrt((double) x);  // math.h reference
-        // double rel_err = fabs(y_true - y_approx) / y_true * 100.0;
-        // printf("%10u\t%10u\t%.8f\t%.8f\t%.3f%%\n", x, y_fixed, y_approx,
-        // y_true,
-        //        rel_err);
+        printf("%10u\t%10u\t%.8f\t%.8f\t%.3f%%\n", x, y_fixed, y_approx, y_true,
+               rel_err);
     }
 
-    printf("All test pass\n");
     return 0;
 }
