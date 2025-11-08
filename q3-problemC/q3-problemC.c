@@ -1,5 +1,17 @@
-#include <stdint.h>
+/*
+gcc -Ofast -fprofile-arcs -ftest-coverage q3-problemC.c -o q3-problemC &&\
+./q3-problemC &&\
+gcov -o q3-problemC q3-problemC.c &&\
+lcov --capture --directory . --output-file coverage.info &&\
+genhtml coverage.info --output-directory html_report
+*/
 
+#include <stdint.h>
+#if !defined(__riscv)
+#include <stdio.h>
+#endif
+
+#if defined(__riscv)
 extern void printstr(char *ptr, unsigned long length);
 extern void print_dec(unsigned long val);
 extern void print_char(unsigned long val);
@@ -43,6 +55,19 @@ static inline ticks getticks(void)
     result = (((uint64_t) h) << 32) | ((uint64_t) l);
     return result;
 }
+#else
+#define TEST_LOGGER(x) printf(x);
+#define print_dec(x) printf("%lu", (unsigned long) x);
+#define print_char(x) printf("%c", x);
+
+static inline uint64_t get_cycles(void)
+{
+    uint32_t hi, lo;
+    __asm__ volatile("rdtsc" : "=a"(lo), "=d"(hi) : : "memory");
+    return ((uint64_t) hi << 32) | lo;
+}
+
+#endif
 
 static uint64_t mul32(uint32_t a, uint32_t b)
 {
@@ -132,11 +157,11 @@ int main(void)
     uint32_t test_values[] = {1, 4, 16, 20, 100, 1024, 65536, 4294967295U};
     uint32_t expect_values[] = {65536, 32768, 16384, 14654, 6553, 2048, 256, 1};
     int num_tests = sizeof(test_values) / sizeof(test_values[0]);
-
     uint64_t start_cycles, end_cycles, cycles_elapsed;
-    uint64_t start_instret, end_instret, instret_elapsed;
+#if defined(__riscv)
     ticks start_ticks, end_ticks, ticks_elapsed;
-
+    uint64_t start_instret, end_instret, instret_elapsed;
+#endif
     // printf("x\t\tfast_rsqrt(x)\tapprox sqrt\t math.h
     // \trelative_error(%%)\n");
     // printf("-------------------------------------------------------------\n");
@@ -145,9 +170,11 @@ int main(void)
     TEST_LOGGER(
         "-------------------------------------------------------------\n");
 
-    start_ticks = getticks();
     start_cycles = get_cycles();
+#if defined(__riscv)
+    start_ticks = getticks();
     start_instret = get_instret();
+#endif
 
     for (int i = 0; i < num_tests; i++) {
         uint32_t x = test_values[i];
@@ -177,25 +204,27 @@ int main(void)
         // y_true,
         //        rel_err);
     }
-
-    end_ticks = getticks();
     end_cycles = get_cycles();
+#if defined(__riscv)
+    end_ticks = getticks();
     end_instret = get_instret();
-
+#endif
     cycles_elapsed = end_cycles - start_cycles;
+#if defined(__riscv)
     instret_elapsed = end_instret - start_instret;
     ticks_elapsed = end_ticks - start_ticks;
-
+#endif
     TEST_LOGGER("  Cycles: ");
     print_dec((unsigned long) cycles_elapsed);
     print_char('\n');
+#if defined(__riscv)
     TEST_LOGGER("  Instructions: ");
     print_dec((unsigned long) instret_elapsed);
     print_char('\n');
     TEST_LOGGER("  Ticks: ");
     print_dec((unsigned long) ticks_elapsed);
     print_char('\n');
-
+#endif
     TEST_LOGGER("All test pass\n");
     return 0;
 }
