@@ -1,6 +1,26 @@
-#include <math.h>
 #include <stdint.h>
-#include <stdio.h>
+
+extern void printstr(char *ptr, unsigned long length);
+extern void print_dec(unsigned long val);
+extern void print_char(unsigned long val);
+
+#define TEST_OUTPUT(msg, length) printstr(msg, length)
+
+#define TEST_LOGGER(msg)                     \
+    {                                        \
+        char _msg[] = msg;                   \
+        TEST_OUTPUT(_msg, sizeof(_msg) - 1); \
+    }
+
+/* Bare metal memcpy implementation */
+void *memcpy(void *dest, const void *src, unsigned long n)
+{
+    uint8_t *d = (uint8_t *) dest;
+    const uint8_t *s = (const uint8_t *) src;
+    while (n--)
+        *d++ = *s++;
+    return dest;
+}
 
 static uint64_t mul32(uint32_t a, uint32_t b)
 {
@@ -72,7 +92,7 @@ uint32_t fast_rsqrt(uint32_t x)
         uint32_t delta = y - y_next;
         uint32_t frac =
             (uint32_t) ((((uint64_t) x - (1UL << exp)) << 16) >> exp);
-        y -= (uint32_t) ((delta * frac) >> 16);
+        y -= (uint32_t) (mul32(delta, frac) >> 16);
     }
 
     // Step 4
@@ -96,18 +116,26 @@ int main(void)
     // \trelative_error(%%)\n");
     // printf("-------------------------------------------------------------\n");
 
-    printf("x\t\tfast_rsqrt(x)\t expect value\n");
-    printf("-------------------------------------------------------------\n");
+    TEST_LOGGER("x\t\tfast_rsqrt(x)\t expect value\n");
+    TEST_LOGGER(
+        "-------------------------------------------------------------\n");
 
     for (int i = 0; i < num_tests; i++) {
         uint32_t x = test_values[i];
 
         uint32_t y_fixed = fast_rsqrt(x);  // scaled by 2^16
 
-        printf("%10u\t%10u\t%10u\n", x, y_fixed, expect_values[i]);
+        print_dec(x);
+        print_char('\t');
+        if (x < 10000000)
+            print_char('\t');
+        print_dec(y_fixed);
+        print_char('\t');
+        print_dec(expect_values[i]);
+        print_char('\n');
 
         if (y_fixed != expect_values[i]) {
-            printf("test failed\n");
+            TEST_LOGGER("test failed\n");
             return -1;
         }
 
@@ -121,6 +149,6 @@ int main(void)
         //        rel_err);
     }
 
-    printf("All test pass\n");
+    TEST_LOGGER("All test pass\n");
     return 0;
 }
