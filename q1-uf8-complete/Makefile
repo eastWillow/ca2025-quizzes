@@ -1,9 +1,9 @@
-ARCH = -march=rv32izicsr
+ARCH = -march=rv32i_zicsr -mabi=ilp32
 LINKER_SCRIPT = linker.ld
 CROSS_COMPILE = riscv-none-elf-
 
-AFLAGS = -g $(ARCH)
-CFLAGS = -g -Ofast -march=rv32i_zicsr
+AFLAGS = $(ARCH)
+CFLAGS = -Ofast $(ARCH)
 LDFLAGS = -T $(LINKER_SCRIPT)
 EXEC = test.elf
 
@@ -12,7 +12,7 @@ AS = $(CROSS_COMPILE)as
 LD = $(CROSS_COMPILE)ld
 OBJDUMP = $(CROSS_COMPILE)objdump
 
-OBJS = start.o main.o perfcounter.o
+OBJS = start.o uf8_decode.o perfcounter.o
 
 .PHONY: all run dump clean
 
