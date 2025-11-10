@@ -3,7 +3,7 @@ LINKER_SCRIPT = linker.ld
 CROSS_COMPILE = riscv-none-elf-
 
 AFLAGS = -g $(ARCH)
-CFLAGS = -g -march=rv32i_zicsr
+CFLAGS = -g -Ofast -march=rv32i_zicsr
 LDFLAGS = -T $(LINKER_SCRIPT)
 EXEC = test.elf
 

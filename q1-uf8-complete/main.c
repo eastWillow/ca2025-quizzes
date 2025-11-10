@@ -1,17 +1,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define printstr(ptr, length)                   \
-    do {                                        \
-        asm volatile(                           \
-            "add a7, x0, 0x40;"                 \
-            "add a0, x0, 0x1;" /* stdout */     \
-            "add a1, x0, %0;"                   \
-            "mv a2, %1;" /* length character */ \
-            "ecall;"                            \
-            :                                   \
-            : "r"(ptr), "r"(length)             \
-            : "a0", "a1", "a2", "a7");          \
+#define printstr(ptr, length)                    \
+    do {                                         \
+        asm volatile(                            \
+            "add a7, x0, 0x40;"                  \
+            "add a0, x0, 0x1;" /* stdout */      \
+            "add a1, x0, %0;"                    \
+            "mv a2, %1;" /* length character */  \
+            "ecall;"                             \
+            :                                    \
+            : "r"(ptr), "r"(length)              \
+            : "a0", "a1", "a2", "a7", "memory"); \
     } while (0)
 
 #define TEST_OUTPUT(msg, length) printstr(msg, length)
