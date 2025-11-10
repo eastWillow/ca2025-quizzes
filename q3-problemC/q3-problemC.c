@@ -1,5 +1,5 @@
 /*
-gcc -O0 -fprofile-arcs -ftest-coverage q3-problemC.c -o q3-problemC &&\
+gcc -Ofast -fprofile-arcs -ftest-coverage q3-problemC.c -o q3-problemC &&\
 ./q3-problemC &&\
 gcov -o q3-problemC q3-problemC.c &&\
 lcov --capture --directory . --output-file coverage.info &&\
@@ -11,6 +11,7 @@ valgrind --tool=callgrind ./q3-problemC
 /*
 cd q3-problemC
 make clean && make && ../../rv32emu/build/rv32emu test.elf
+valgrind --tool=callgrind ../../rv32emu/build/rv32emu test.elf
 */
 #include <stdint.h>
 #if !defined(__riscv)
@@ -90,25 +91,50 @@ static uint64_t mul32(uint32_t a, uint32_t b)
     uint8_t b3 = (b >> 24) & 0xFF;
 
     uint64_t r = 0;
-    r += lut_2d[a0][b0];
-    r += ((uint64_t) lut_2d[a0][b1] << 8);
-    r += ((uint64_t) lut_2d[a0][b2] << 16);
-    r += ((uint64_t) lut_2d[a0][b3] << 24);
 
-    r += ((uint64_t) lut_2d[a1][b0] << 8);
-    r += ((uint64_t) lut_2d[a1][b1] << 16);
-    r += ((uint64_t) lut_2d[a1][b2] << 24);
-    r += ((uint64_t) lut_2d[a1][b3] << 32);
+    if (a0) {
+        if (b0)
+            r += lut_2d[a0][b0];
+        if (b1)
+            r += ((uint64_t) lut_2d[a0][b1] << 8);
+        if (b2)
+            r += ((uint64_t) lut_2d[a0][b2] << 16);
+        if (b3)
+            r += ((uint64_t) lut_2d[a0][b3] << 24);
+    }
 
-    r += ((uint64_t) lut_2d[a2][b0] << 16);
-    r += ((uint64_t) lut_2d[a2][b1] << 24);
-    r += ((uint64_t) lut_2d[a2][b2] << 32);
-    r += ((uint64_t) lut_2d[a2][b3] << 40);
+    if (a1) {
+        if (b0)
+            r += ((uint64_t) lut_2d[a1][b0] << 8);
+        if (b1)
+            r += ((uint64_t) lut_2d[a1][b1] << 16);
+        if (b2)
+            r += ((uint64_t) lut_2d[a1][b2] << 24);
+        if (b3)
+            r += ((uint64_t) lut_2d[a1][b3] << 32);
+    }
 
-    r += ((uint64_t) lut_2d[a3][b0] << 24);
-    r += ((uint64_t) lut_2d[a3][b1] << 32);
-    r += ((uint64_t) lut_2d[a3][b2] << 40);
-    r += ((uint64_t) lut_2d[a3][b3] << 48);
+    if (a2) {
+        if (b0)
+            r += ((uint64_t) lut_2d[a2][b0] << 16);
+        if (b1)
+            r += ((uint64_t) lut_2d[a2][b1] << 24);
+        if (b2)
+            r += ((uint64_t) lut_2d[a2][b2] << 32);
+        if (b3)
+            r += ((uint64_t) lut_2d[a2][b3] << 40);
+    }
+
+    if (a3) {
+        if (b0)
+            r += ((uint64_t) lut_2d[a3][b0] << 24);
+        if (b1)
+            r += ((uint64_t) lut_2d[a3][b1] << 32);
+        if (b2)
+            r += ((uint64_t) lut_2d[a3][b2] << 40);
+        if (b3)
+            r += ((uint64_t) lut_2d[a3][b3] << 48);
+    }
 
     return r;
 }
