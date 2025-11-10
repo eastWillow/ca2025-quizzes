@@ -4,8 +4,13 @@ test_values:
     .align 2
 expect_values:
     .word 0, 1, 15, 16, 46, 48, 108, 112, 232, 524272, 1015792
-correct_str:    .string "correct\n"
-wrong_str:      .string "wrong\n"
+correct_str:
+    .string "correct\n"
+    .set correct_str_size, .-correct_str
+wrong_str:
+    .string "wrong\n"
+    .set wrong_str_size, .-wrong_str
+
 .equ n_tests, 11
 
 .text
@@ -26,8 +31,10 @@ loop_start:
     lw   t4, 0(t1)             # load expected value
     bne  a0, t4, test_fail     # if decoded != expected, jump to fail
 
-    la a0, correct_str
-    li a7, 4
+    add a7, x0, 0x40           #
+    add a0, x0, 0x1            # stdout
+    la  a1, correct_str        #
+    li  a2, correct_str_size
     ecall
 
     addi t0, t0, 1             # advance test_values pointer
@@ -36,13 +43,16 @@ loop_start:
     jal  x0, loop_start
 
 exit:
-    li a7, 10           # return code 0
+    li a7, 93           # exit syscall number
+    li a0, 0            # exit code 0
     ecall
 
 test_fail:
     # optional: indicate failure
-    la a0, wrong_str
-    li a7, 4
+    add a7, x0, 0x40           #
+    add a0, x0, 0x1            # stdout
+    la  a1, wrong_str        #
+    li  a2, wrong_str_size
     ecall
     li   a7, 93         # exit syscall
     li   a0, 1          # return code 1
