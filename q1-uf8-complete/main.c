@@ -222,71 +222,75 @@ int main(void)
                                           0xC0, 0xD0, 0xE0, 0xF0, 0xFF, 0xFF};
 
     uint64_t start_cycles, end_cycles, cycles_elapsed;
-    uint64_t start_instret, end_instret, instret_elapsed;
+    // uint64_t start_instret, end_instret, instret_elapsed;
 
     TEST_LOGGER("\n=== uf8 Tests ===\n");
 
     TEST_LOGGER("\n=== uf8 decode ===\n\n");
     start_cycles = get_cycles();
-    start_instret = get_instret();
+    // start_instret = get_instret();
 
     for (unsigned long i = 0;
          i < sizeof(test_values_uf8_decode) / sizeof(test_values_uf8_decode[0]);
          i++) {
         uint32_t decoded = uf8_decode(test_values_uf8_decode[i]);
-        TEST_LOGGER("b=0x");
-        print_hex(test_values_uf8_decode[i]);
-        TEST_LOGGER(" -> decoded=");
-        print_dec(decoded);
-        TEST_LOGGER(" (expected=");
-        print_dec(expect_values_uf8_decode[i]);
-        TEST_LOGGER(")\n");
+        // TEST_LOGGER("b=0x");
+        // print_hex(test_values_uf8_decode[i]);
+        // TEST_LOGGER(" -> decoded=");
+        // print_dec(decoded);
+        // TEST_LOGGER(" (expected=");
+        // print_dec(expect_values_uf8_decode[i]);
+        // TEST_LOGGER(")\n");
         if (decoded != expect_values_uf8_decode[i]) {
-            TEST_LOGGER("\n\n==FAIL==\n\n");
-            return 0;
+            TEST_LOGGER("wrong\n");
+            return 1;
+        } else {
+            TEST_LOGGER("correct\n");
         }
     }
 
     end_cycles = get_cycles();
-    end_instret = get_instret();
+    // end_instret = get_instret();
     cycles_elapsed = end_cycles - start_cycles;
-    instret_elapsed = end_instret - start_instret;
+    // instret_elapsed = end_instret - start_instret;
 
-    TEST_LOGGER("  Cycles: ");
+    TEST_LOGGER("Cycles:");
     print_dec((unsigned long) cycles_elapsed);
-    TEST_LOGGER("  Instructions: ");
-    print_dec((unsigned long) instret_elapsed);
+    // TEST_LOGGER("  Instructions: ");
+    // print_dec((unsigned long) instret_elapsed);
 
     TEST_LOGGER("\n=== uf8 encode ===\n\n");
     start_cycles = get_cycles();
-    start_instret = get_instret();
+    // start_instret = get_instret();
 
     for (unsigned long i = 0;
          i < sizeof(test_values_uf8_encode) / sizeof(test_values_uf8_encode[0]);
          i++) {
         uf8 encoded = uf8_encode(test_values_uf8_encode[i]);
-        TEST_LOGGER("value=0x");
-        print_hex(test_values_uf8_encode[i]);
-        TEST_LOGGER(" -> uf8=0x");
-        print_hex(encoded);
-        TEST_LOGGER(" (expect 0x");
-        print_hex(expect_values_uf8_encode[i]);
-        TEST_LOGGER(")\n");
+        // TEST_LOGGER("value=0x");
+        // print_hex(test_values_uf8_encode[i]);
+        // TEST_LOGGER(" -> uf8=0x");
+        // print_hex(encoded);
+        // TEST_LOGGER(" (expect 0x");
+        // print_hex(expect_values_uf8_encode[i]);
+        // TEST_LOGGER(")\n");
         if (encoded != expect_values_uf8_encode[i]) {
-            TEST_LOGGER("\n\n==FAIL==\n\n");
-            return 0;
+            TEST_LOGGER("wrong\n");
+            return 1;
+        } else {
+            TEST_LOGGER("correct\n");
         }
     }
 
     end_cycles = get_cycles();
-    end_instret = get_instret();
+    // end_instret = get_instret();
     cycles_elapsed = end_cycles - start_cycles;
-    instret_elapsed = end_instret - start_instret;
+    // instret_elapsed = end_instret - start_instret;
 
-    TEST_LOGGER("  Cycles: ");
+    TEST_LOGGER("Cycles:");
     print_dec((unsigned long) cycles_elapsed);
-    TEST_LOGGER("  Instructions: ");
-    print_dec((unsigned long) instret_elapsed);
+    // TEST_LOGGER("  Instructions: ");
+    // print_dec((unsigned long) instret_elapsed);
 
     TEST_LOGGER("\n=== All Tests Completed ===\n");
     return 0;

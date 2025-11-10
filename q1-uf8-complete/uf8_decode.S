@@ -10,6 +10,12 @@ correct_str:
 wrong_str:
     .string "wrong\n"
     .set wrong_str_size, .-wrong_str
+cycles_str:
+    .string "Cycles:"
+    .set cycles_str_size, .-cycles_str
+endl:
+    .ascii "\n"
+    .set endl_size, .-endl
 
 .equ n_tests, 11
 
@@ -23,6 +29,14 @@ main:
     li   t2, n_tests
     li   t3, 0                 # t3 = loop counter i
 
+    li   s4, 0                 # s4 = cycle_start
+    li   s5, 0                 # s5 = cycleh_start
+    li   s6, 0                 # s6 = cycle_end / cycles_elapsed
+    li   s7, 0                 # s7 = cycleh_end / cyclesh_elapsed
+
+    jal  ra, get_cycles        # call get_cycles, result in a0, a1
+    mv   s4, a0
+    mv   s5, a1
 loop_start:
     beq  t3, t2, exit          # if i == n_tests, exit loop
 
@@ -43,6 +57,30 @@ loop_start:
     jal  x0, loop_start
 
 exit:
+    jal  ra, get_cycles        # call get_cycles, result in a0, a1
+    mv   s6, a0
+    mv   s7, a1
+
+    add a7, x0, 0x40           #
+    add a0, x0, 0x1            # stdout
+    la  a1, cycles_str         #
+    li  a2, cycles_str_size
+    ecall
+
+    sub   s6, s6, s4  # low word
+    sltu  t0, s6, s4  # borrow from low subtraction
+    sub   s7, s7, s5  # high word
+    sub   s7, s7, t0  # subtract borrow
+    mv    a0, s6
+    mv    a1, s7
+    call  print_dec         # s7:s6 = elapsed_cycles (64-bit)
+
+    add a7, x0, 0x40           #
+    add a0, x0, 0x1            # stdout
+    la a1, endl   # address of string
+    li a2, endl_size  # length of string
+    ecall
+
     li a7, 93           # exit syscall number
     li a0, 0            # exit code 0
     ecall
@@ -72,4 +110,11 @@ uf8_decode:
     # result = (mantissa << exponent) + offset
     sll   s0, s0, s1         # mantissa << exponent
     add   a0, s0, s2         # result
+    ret
+
+get_cycles:
+    csrr a1, cycleh
+    csrr a0, cycle
+    csrr a2, cycleh
+    bne a1, a2, get_cycles
     ret
