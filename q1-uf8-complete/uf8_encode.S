@@ -32,6 +32,14 @@ main:
     la      t1, expect_values     # t1 = &expect_values
     li      t2, 12                # t2 = n = 12
 
+    li   s4, 0                 # s4 = cycle_start
+    li   s5, 0                 # s5 = cycleh_start
+    li   s6, 0                 # s6 = cycle_end / cycles_elapsed
+    li   s7, 0                 # s7 = cycleh_end / cyclesh_elapsed
+    jal  ra, get_cycles        # call get_cycles, result in a0, a1
+    mv   s4, a0
+    mv   s5, a1
+
 loop:
     beqz    t2, end
     lw      a0, 0(t0)             # load value
@@ -74,6 +82,30 @@ next:
     j       loop
 
 end:
+    jal  ra, get_cycles        # call get_cycles, result in a0, a1
+    mv   s6, a0
+    mv   s7, a1
+
+    add a7, x0, 0x40           #
+    add a0, x0, 0x1            # stdout
+    la  a1, cycles_str         #
+    li  a2, cycles_str_size
+    ecall
+
+    sub   s6, s6, s4  # low word
+    sltu  t0, s6, s4  # borrow from low subtraction
+    sub   s7, s7, s5  # high word
+    sub   s7, s7, t0  # subtract borrow
+    mv    a0, s6
+    mv    a1, s7
+    call  print_dec         # s7:s6 = elapsed_cycles (64-bit)
+
+    add a7, x0, 0x40           #
+    add a0, x0, 0x1            # stdout
+    la a1, endl   # address of string
+    li a2, endl_size  # length of string
+    ecall
+
     li   a7, 93         # exit syscall
     li   a0, 0          # return code 0
     ecall
