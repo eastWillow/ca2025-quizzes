@@ -5,7 +5,7 @@
             "name": "Debug RV32EMU",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/q3-problemC/test.elf", // ELF 檔案
+            "program": "${workspaceFolder}/q1-uf8-complete/test.elf", // ELF 檔案
             "miDebuggerPath": "riscv-none-elf-gdb", // GDB path
             "miDebuggerServerAddress": ":1234",
             "cwd": "${workspaceFolder}",
