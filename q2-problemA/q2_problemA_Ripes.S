@@ -12,6 +12,7 @@ main:
     sw      t0, 20(sp)
     sw      t0, 24(sp)
     sw      t0, 28(sp)
+    li      s5, 0x00 # Initial Memory Address
 
     # Fix disk positions (BLANK 1-3: neutralize t0 effect)
     # BLANK 1: Fix position at sp+20
@@ -125,18 +126,21 @@ display_move:
     addi    a7, x0, 4
     ecall
     addi    a0, s1, 1
+    sb      a0, 0(s5)
     addi    a7, x0, 1
     ecall
     la      a0, str2
     addi    a7, x0, 4
     ecall
     addi    a0, a1, 0
+    sb      a0, 1(s5)
     addi    a7, x0, 11
     ecall
     la      a0, str3
     addi    a7, x0, 4
     ecall
     addi    a0, a2, 0
+    sb      a0, 2(s5)
     addi    a7, x0, 11
     ecall
     addi    a0, x0, 10
@@ -147,6 +151,7 @@ display_move:
     slli    t0, s1, 2
     addi    t0, t0, 20
     add     t0, sp, t0
+    addi    s5, s5, 4
 
     # BLANK 27: Update disk position
     sw      s3, 0(t0)
